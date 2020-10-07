@@ -42,7 +42,7 @@ android {
         applicationId "org.lineageos.eleven"
 
         minSdkVersion 27
-        targetSdkVersion 30
+        targetSdkVersion 28
 
         versionCode 541
         versionName '5.4.1'

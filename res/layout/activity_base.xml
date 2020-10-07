@@ -17,8 +17,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  -->
-<org.lineageos.eleven.slidinguppanel.SlidingUpPanelLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<org.lineageos.eleven.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sliding_layout"
@@ -44,14 +43,17 @@
             android:theme="@style/ToolBarTheme"
             app:popupTheme="@style/ToolBarPopupTheme"
             app:titleTextAppearance="@style/TextAppearance.Widget.Event.Toolbar.Title" />
+
         <include
             layout="@layout/toolbarcover"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
         <include
             layout="@layout/toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
         <FrameLayout
             android:id="@+id/activity_base_content"
             android:layout_width="match_parent"
