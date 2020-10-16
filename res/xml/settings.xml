@@ -83,5 +83,10 @@
             android:key="ElEdition"
             android:summary="Pixel Blue"
             android:title="Eleven Edition" />
+        <!-- Eleven Notice -->
+        <Preference
+            android:key="ElNotice"
+            android:summary="This Eleven Replacement is currently WIP, you may find some bugs in some places. Thanks for your understanding!"
+            android:title="WIP Notice" />
     </PreferenceCategory>
 </PreferenceScreen>
