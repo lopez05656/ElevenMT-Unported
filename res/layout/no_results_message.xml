@@ -15,9 +15,8 @@
      limitations under the License.
 -->
 
-<org.lineageos.eleven.widgets.NoResultsContainer
+<com.cyanogenmod.eleven.widgets.NoResultsContainer
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/no_results_container"
     android:gravity="center_horizontal"
     android:layout_width="@dimen/no_results_width"
@@ -25,11 +24,9 @@
     android:layout_centerInParent="true"
     android:layout_gravity="center"
     android:orientation="vertical"
-    android:visibility="gone"
-    tools:visibility="visible">
+    android:visibility="gone">
 
     <ImageView
-        android:id="@+id/no_results_image"
         android:layout_width="@dimen/white_note_width"
         android:layout_height="@dimen/white_note_height"
         android:layout_gravity="center_horizontal"
@@ -78,4 +75,4 @@
         android:textColor="@color/no_results"
         android:textSize="@dimen/no_results_text_secondary"
         android:text="@string/empty_generic_secondary" />
-</org.lineageos.eleven.widgets.NoResultsContainer>
+</com.cyanogenmod.eleven.widgets.NoResultsContainer>
