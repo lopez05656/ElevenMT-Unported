@@ -1,11 +1,13 @@
 This is a guide on how to include this in a LineageOS Build:
 
 If you're building for Red Velvet Cake (Android 11):
-Remove the Eleven line and Add this to your lineage.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" />
+Remove the Eleven line and Add this to your lineage.xml (It's located in /.repo/manifests/snippets): 
+<project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" />
 
 After you do that, you may issue the repo sync (Or repo sync --force-sync if you already synced your rom) command and you'll be all set.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 If you're building for Queen Cake (Android 10), Pie (Android 9), or Oreo (Android 8.0.0 - 8.1.0):
-Remove the Eleven line and Add this to your lineage.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" revision=lineage-18.0 />
+Remove the Eleven line and Add this to your lineage.xml (It's located in /.repo/manifests/snippets): 
+<project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" revision=lineage-18.0 />
 
 After you do that, you may issue the repo sync (Or repo sync --force-sync if you already synced your rom) command and you'll be all set.
