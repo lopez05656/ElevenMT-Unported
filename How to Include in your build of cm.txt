@@ -1,1 +1,9 @@
+If you're building for Nougat (Android 7.0 - 7.1.2):
+Remove the Eleven line and Add this to your cm.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" />
+
+After you do that, you may issue the repo sync command and you'll be all set.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+If you're building for Marshmallow (Android 6.0 - 6.0.1) or Lollipop (Android 5.0 - 5.1.1):
 Remove the Eleven line and Add this to your cm.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" revision=cm-14.1 />
+
+After you do that, you may issue the repo sync command and you'll be all set.
