@@ -1,3 +1,5 @@
+This is a guide on how to include my Eleven mod in your build of cm / lineage:
+
 If you're building for Nougat (Android 7.0 - 7.1.2):
 Remove the Eleven line and Add this to your cm.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" />
 
