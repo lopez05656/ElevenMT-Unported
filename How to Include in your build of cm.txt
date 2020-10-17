@@ -1,0 +1,1 @@
+Remove the Eleven line and Add this to your cm.xml (It's located in /.repo/manifests/snippets): <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" revision=cm-14.1 />
