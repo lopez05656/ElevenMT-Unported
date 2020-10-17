@@ -23,7 +23,7 @@
     tools:ignore="GradleOverrides">
 
     <uses-sdk
-        android:minSdkVersion="27"
+        android:minSdkVersion="26"
         android:targetSdkVersion="28" />
 
     <original-package android:name="com.cyanogenmod.eleven" />
