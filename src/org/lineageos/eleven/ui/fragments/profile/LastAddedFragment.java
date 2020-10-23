@@ -14,11 +14,10 @@
 package org.lineageos.eleven.ui.fragments.profile;
 
 import android.os.Bundle;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import androidx.loader.content.Loader;
 
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.Config.SmartPlaylistType;

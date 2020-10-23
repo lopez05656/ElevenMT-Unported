@@ -2,7 +2,6 @@
 <!--
      Copyright (C) 2012-2013 Andrew Neal
      Copyright (C) 2012-2014 The CyanogenMod Project
-     Copyright (C) 2017-2020 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -26,6 +25,7 @@
     <string name="page_genres">Zhanret</string>
     <string name="header_albums">Albumet</string>
     <string name="header_all_songs">Të gjitha këngët</string>
+    <string name="menu_search">Kërko</string>
     <string name="menu_play_all">Luaji të gjitha</string>
     <string name="menu_sort_by">Rendit sipas</string>
     <string name="menu_clear_list">Hiqe listën</string>
@@ -69,7 +69,8 @@
     <string name="settings_download_only_on_wifi_title">Shkarko vetëm me Wi-Fi</string>
     <string name="settings_download_only_on_wifi_summary">Për të reduktuar pagesat ndaj operatorit, mos shkarkoni mbi rrjetet celulare</string>
     <string name="settings_download_missing_artwork_title">Shkarko kopertinën e munguar të albumit</string>
-    <string name="settings_use_blur_title">Zbeh sfondin</string>
+    <string name="settings_lockscreen_album_art">Kopertina e albumit në ekranin bllokues</string>
+    <string name="settings_lockscreen_album_art_summary">Zëvendëso sfondin e ekranit bllokues me kopertinat e albumeve</string>
     <string name="app_widget_small">Muzika: 4\u00d7 1</string>
     <string name="app_widget_large">Muzika: 4\u00d7 2</string>
     <string name="app_widget_large_alt">Muzika: 4 \u00d7 2 (alternative)</string>
@@ -94,6 +95,7 @@
     <string name="footer_search_albums">Trego të gjithë albumet</string>
     <string name="footer_search_songs">Trego të gjitha këngët</string>
     <string name="footer_search_playlists">Trego të gjitha listat e këngëve</string>
+    <string name="searchHint">Kërko muzikë</string>
     <string name="search_title_artists">Të gjithë artistët \"%s\"</string>
     <string name="search_title_albums">Të gjithë albumet \"%s\"</string>
     <string name="search_title_songs">Të gjitha këngët \"%s\"</string>

@@ -200,7 +200,7 @@ public class PlayPauseProgressButton extends FrameLayout {
     /**
      * Updates the state of the progress bar and the play pause button
      */
-    public void updateState() {
+    private void updateState() {
         mCurrentSongDuration = MusicUtils.duration();
         mCurrentSongProgress = MusicUtils.position();
 

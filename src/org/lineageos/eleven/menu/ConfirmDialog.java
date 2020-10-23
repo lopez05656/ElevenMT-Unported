@@ -21,9 +21,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 
 import org.lineageos.eleven.R;
 

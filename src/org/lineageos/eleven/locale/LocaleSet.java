@@ -16,10 +16,8 @@
 
 package org.lineageos.eleven.locale;
 
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
-
-import androidx.annotation.VisibleForTesting;
-
 import java.util.Locale;
 
 public class LocaleSet {

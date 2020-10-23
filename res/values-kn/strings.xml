@@ -2,7 +2,6 @@
 <!--
      Copyright (C) 2012-2013 Andrew Neal
      Copyright (C) 2012-2014 The CyanogenMod Project
-     Copyright (C) 2017-2020 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -29,6 +28,7 @@
     <string name="header_top_songs">ಟಾಪ್ ಹಾಡುಗಳು</string>
     <string name="header_all_songs">ಎಲ್ಲಾ ಹಾಡುಗಳು</string>
     <string name="menu_settings">ಸೆಟ್ಟಿಂಗ್ಸ್</string>
+    <string name="menu_search">ಹುಡುಕಿ</string>
     <string name="menu_shuffle_item">ಷಫಲ್</string>
     <string name="menu_shuffle_all">ಎಲ್ಲವನ್ನು ಷಫಲ್ ಮಾಡಿ</string>
     <string name="menu_shuffle_playlist">ಪ್ಲೇಪಟ್ಟಿ ಷಫಲ್ ಮಾಡಿ</string>
@@ -119,12 +119,16 @@
     <string name="settings_show_lyrics_summary">srt ಕಡತ ಹೊಂದಿರುವ ಹಾಡುಗಳಿಗಾಗಿ</string>
     <string name="settings_shake_to_play">ಪ್ಲೇ ಮಾಡಲು ಕುಲುಕಿ</string>
     <string name="settings_shake_to_play_summary">ಮುಂದಿನ ಹಾಡನ್ನು ಪ್ಲೇ ಮಾಡಲು ನಿಮ್ಮ ಸಾಧನವನ್ನು ಕುಲುಕಿ</string>
+    <string name="settings_lockscreen_album_art">ಲಾಕ್‍ಪರದೆ ಆಲ್ಬಂ ಆರ್ಟ್</string>
+    <string name="settings_lockscreen_album_art_summary">ಲಾಕ್‍ಪರದೆ ಹಿನ್ನಲೆಯನ್ನು ಆಲ್ಬಂ ಆರ್ಟ್‍ನೊಂದಿಗೆ ಬದಲಿಸು</string>
     <string name="app_widget_small">ಸಂಗೀತ: 4 \u00d7 1</string>
     <string name="app_widget_large">ಸಂಗೀತ: 4 \u00d7 2</string>
     <string name="app_widget_large_alt">ಸಂಗೀತ: 4 \u00d7 2 (ಪರ್ಯಾಯ)</string>
     <string name="app_widget_recent">ಸಂಗೀತ: ಇತ್ತೀಚೆಗೆ ಆಲಿಸಿದ</string>
     <string name="no_effects_for_you">ಸಮಾನಕಾರಕವನ್ನು ತೆರೆಯಲಾಗುವುದಿಲ್ಲ.</string>
     <string name="empty_music">ನಿಮ್ಮ ಸಂಗೀತವನ್ನು ನಿಮ್ಮ ಕಂಪ್ಯೂಟರ್‍‍ನಿಂದ ನಿಮ್ಮ ಸಾಧನಕ್ಕೆ ನಕಲಿಸಲು, ಯು‍ಎಸ್‍ಬಿ ಕೇಬಲ್ ಉಪಯೋಗಿಸಿ.</string>
+    <string name="empty_search">ಯಾವುದೇ ಶೋಧನೆ ಫಲಿತಾಂಶಗಳು ಪತ್ತೆಯಾಗಲಿಲ್ಲ</string>
+    <string name="empty_search_check">ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ನೀವು ಸರಿಯಾದ ಅಕ್ಷರವನ್ನು ಹೊಂದಿದ್ದೀರೇ ಎಂದು ಅಥವ  ಭಿನ್ನವಾದ ಪದಕುಂಜವನ್ನು ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="empty_favorite">ನೀವು ಫೇವರಿಟ್ಸ್ ಎಂದು ಗುರುತಿಸಿದ ಹಾಡುಗಳನ್ನು ಇಲ್ಲಿ ಪ್ರದರ್ಶಿಸಲಾಗುತ್ತದೆ.</string>
     <string name="empty_recent_main">ಯಾವುದೇ ಇತ್ತೀಚಿನ ಹಾಡುಗಳಿಲ್ಲ</string>
     <string name="empty_recent">ನೀವು ಇತ್ತೀಚೆಗೆ ಆಲಿಸಿದ ಹಾಡುಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.</string>
@@ -150,7 +154,7 @@
     <string name="header_10_to_30_minutes">10 - 30 ನಿಮಿಷಗಳು</string>
     <string name="header_30_to_60_minutes">30 - 60 ನಿಮಿಷಗಳು</string>
     <string name="header_greater_than_60_minutes">60 ನಿಮಿಷಗಳಿಗಿಂತ ಹೆಚ್ಚು</string>
-    <string name="header_1_song">1 ಹಾಡು</string>
+    <string name="header_1_song">೧ ಗೀತೆ</string>
     <string name="header_2_to_4_songs">2 - 4 ಹಾಡುಗಳು</string>
     <string name="header_5_to_9_songs">5 - 9 ಹಾಡುಗಳು</string>
     <string name="header_10_plus_songs">10+ ಹಾಡುಗಳು</string>
@@ -160,6 +164,7 @@
     <string name="footer_search_albums">ಎಲ್ಲಾ ಆಲ್ಬಂಗಳನ್ನು ಪ್ರದರ್ಶಿಸು</string>
     <string name="footer_search_songs">ಎಲ್ಲಾ ಹಾಡುಗಳನ್ನು ಪ್ರದರ್ಶಿಸು</string>
     <string name="footer_search_playlists">ಎಲ್ಲಾ ಪ್ಲೇಪಟ್ಟಿಗಳನ್ನು ಪ್ರದರ್ಶಿಸು</string>
+    <string name="searchHint">ಸಂಗೀತವನ್ನು ಹುಡುಕಿ</string>
     <string name="search_title_artists">ಎಲ್ಲಾ \"%s\" ಕಲಾವಿದರು</string>
     <string name="search_title_albums">ಎಲ್ಲಾ \"%s\" ಆಲ್ಬಂಗಳು</string>
     <string name="search_title_songs">ಎಲ್ಲಾ \"%s\" ಹಾಡುಗಳು</string>

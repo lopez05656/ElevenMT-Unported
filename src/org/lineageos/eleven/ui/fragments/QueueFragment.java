@@ -1,22 +1,19 @@
 /*
  * Copyright (C) 2012 Andrew Neal
  * Copyright (C) 2014 The CyanogenMod Project
- * Copyright (C) 2019 The LineageOS Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 
 package org.lineageos.eleven.ui.fragments;
+
+import static org.lineageos.eleven.utils.MusicUtils.mService;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -27,15 +24,14 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-
-import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.MusicPlaybackService;
@@ -58,6 +54,7 @@ import org.lineageos.eleven.utils.PopupMenuHelper;
 import org.lineageos.eleven.widgets.IPopupMenuCallback;
 import org.lineageos.eleven.widgets.LoadingEmptyContainer;
 import org.lineageos.eleven.widgets.NoResultsContainer;
+import org.lineageos.eleven.widgets.PlayPauseProgressButton;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -68,7 +65,7 @@ import java.util.TreeSet;
  *
  * @author Andrew Neal (andrewdneal@gmail.com)
  */
-public class QueueFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Song>>,
+public class QueueFragment extends Fragment implements LoaderCallbacks<List<Song>>,
         OnItemClickListener, DropListener, RemoveListener, DragScrollProfile, ServiceConnection {
 
     /**
@@ -252,6 +249,9 @@ public class QueueFragment extends Fragment implements LoaderManager.LoaderCallb
 
         // Initialize the broadcast receiver
         mQueueUpdateListener = new QueueUpdateListener(this);
+
+        // Bind Eleven's service
+        mToken = MusicUtils.bindToService(getActivity(), this);
     }
 
     /**
@@ -270,9 +270,6 @@ public class QueueFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onStart() {
         super.onStart();
 
-        // Bind Eleven's service
-        mToken = MusicUtils.bindToService(getActivity(), this);
-
         final IntentFilter filter = new IntentFilter();
         // Play and pause changes
         filter.addAction(MusicPlaybackService.PLAYSTATE_CHANGED);
@@ -282,11 +279,48 @@ public class QueueFragment extends Fragment implements LoaderManager.LoaderCallb
         filter.addAction(MusicPlaybackService.META_CHANGED);
 
         getActivity().registerReceiver(mQueueUpdateListener, filter);
+
+        // resume the progress listeners
+        setPlayPauseProgressButtonStates(false);
     }
 
     @Override
     public void onStop() {
         super.onStop();
+
+        // stops the progress listeners
+        setPlayPauseProgressButtonStates(true);
+    }
+
+    /**
+     * Sets the state for any play pause progress buttons under the listview
+     * This is neede because the buttons update themselves so if the activity
+     * is hidden, we want to pause those handlers
+     * @param pause the state to set it to
+     */
+    public void setPlayPauseProgressButtonStates(boolean pause) {
+        if (mListView != null) {
+            // walk through the visible list items
+            for (int i = mListView.getFirstVisiblePosition();
+                 i <= mListView.getLastVisiblePosition(); i++) {
+                View childView = mListView.getChildAt(i);
+                if (childView != null) {
+                    PlayPauseProgressButton button =
+                            (PlayPauseProgressButton) childView.findViewById(R.id.playPauseProgressButton);
+                    // pause or resume based on the flag
+                    if (pause) {
+                        button.pause();
+                    } else {
+                        button.resume();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
         try {
             getActivity().unregisterReceiver(mQueueUpdateListener);
@@ -294,8 +328,10 @@ public class QueueFragment extends Fragment implements LoaderManager.LoaderCallb
             //$FALL-THROUGH$
         }
 
-        MusicUtils.unbindFromService(mToken);
-        mToken = null;
+        if (mService != null) {
+            MusicUtils.unbindFromService(mToken);
+            mToken = null;
+        }
     }
 
     /**

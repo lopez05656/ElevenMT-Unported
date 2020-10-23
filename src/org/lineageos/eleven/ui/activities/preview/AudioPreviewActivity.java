@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015 The CyanogenMod Project
- * Copyright (C) 2019-2020 The LineageOS Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (C) 2015 The CyanogenMod Project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package org.lineageos.eleven.ui.activities.preview;
 
@@ -47,9 +46,6 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.ui.activities.preview.util.Logger;
 
@@ -61,10 +57,17 @@ import java.lang.ref.WeakReference;
  * <pre>
  *     Preview plays external audio files in a dialog over the application
  * </pre>
+ *
+ * @see {@link Activity}
+ * @see {@link android.media.MediaPlayer.OnCompletionListener}
+ * @see {@link android.media.MediaPlayer.OnErrorListener}
+ * @see {@link android.media.MediaPlayer.OnPreparedListener}
+ * @see {@link OnClickListener}
+ * @see {@link OnAudioFocusChangeListener}
+ * @see {@link OnSeekBarChangeListener}
  */
-public class AudioPreviewActivity extends AppCompatActivity implements
-        MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnPreparedListener, OnClickListener,
+public class AudioPreviewActivity extends Activity implements MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener, OnClickListener,
         OnAudioFocusChangeListener, OnSeekBarChangeListener, OnTouchListener {
 
     // Constants
@@ -193,7 +196,7 @@ public class AudioPreviewActivity extends AppCompatActivity implements
         }
         Logger.logd(TAG, "URI: " + uri);
         mPreviewSong.URI = uri;
-        PreviewPlayer localPlayer = (PreviewPlayer) getLastCustomNonConfigurationInstance();
+        PreviewPlayer localPlayer = (PreviewPlayer) getLastNonConfigurationInstance();
         if (localPlayer == null) {
             mPreviewPlayer = new PreviewPlayer();
             mPreviewPlayer.setCallbackActivity(this);
@@ -208,7 +211,7 @@ public class AudioPreviewActivity extends AppCompatActivity implements
             mPreviewPlayer = localPlayer;
             mPreviewPlayer.setCallbackActivity(this);
         }
-        mAudioManager = getSystemService(AudioManager.class);
+        mAudioManager = ((AudioManager) getSystemService(Context.AUDIO_SERVICE));
         sAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
             @Override
             protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
@@ -245,7 +248,7 @@ public class AudioPreviewActivity extends AppCompatActivity implements
     }
 
     @Override
-    public Object onRetainCustomNonConfigurationInstance() {
+    public Object onRetainNonConfigurationInstance() {
         mPreviewPlayer.clearCallbackActivity();
         PreviewPlayer localPlayer = mPreviewPlayer;
         mPreviewPlayer = null;

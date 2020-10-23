@@ -2,8 +2,7 @@
 package org.lineageos.eleven.loaders;
 
 import android.content.Context;
-
-import androidx.loader.content.AsyncTaskLoader;
+import android.support.v4.content.AsyncTaskLoader;
 
 /**
  * <a href="http://code.google.com/p/android/issues/detail?id=14944">Issue

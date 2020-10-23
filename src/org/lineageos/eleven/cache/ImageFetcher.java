@@ -1,19 +1,14 @@
 /*
  * Copyright (C) 2012 Andrew Neal
  * Copyright (C) 2014 The CyanogenMod Project
- * Copyright (C) 2019 The LineageOS Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 
 package org.lineageos.eleven.cache;
@@ -23,16 +18,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.util.Log;
 import android.widget.ImageView;
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.MusicPlaybackService;
 import org.lineageos.eleven.cache.PlaylistWorkerTask.PlaylistWorkerType;
-import org.lineageos.eleven.utils.PreferenceUtils;
-import org.lineageos.eleven.utils.colors.BitmapWithColors;
+import org.lineageos.eleven.utils.BitmapWithColors;
 import org.lineageos.eleven.utils.MusicUtils;
-import org.lineageos.eleven.utils.colors.ColorExtractor;
-import org.lineageos.eleven.widgets.AlbumScrimImage;
+import org.lineageos.eleven.widgets.BlurScrimImage;
 import org.lineageos.eleven.widgets.LetterTileDrawable;
 
 import java.io.FileNotFoundException;
@@ -43,12 +35,12 @@ import java.io.InputStream;
  * A subclass of {@link ImageWorker} that fetches images from a URL.
  */
 public class ImageFetcher extends ImageWorker {
+
     private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1024;
 
     private static final int DEFAULT_MAX_IMAGE_WIDTH = 1024;
 
     private static ImageFetcher sInstance = null;
-    private boolean mUseBlur;
 
     /**
      * Creates a new instance of {@link ImageFetcher}.
@@ -57,7 +49,6 @@ public class ImageFetcher extends ImageWorker {
      */
     public ImageFetcher(final Context context) {
         super(context);
-        mUseBlur = PreferenceUtils.getInstance(context).getUseBlur();
     }
 
     /**
@@ -71,10 +62,6 @@ public class ImageFetcher extends ImageWorker {
             sInstance = new ImageFetcher(context.getApplicationContext());
         }
         return sInstance;
-    }
-
-    public void setUseBlur(boolean useBlur) {
-        mUseBlur = useBlur;
     }
 
     /**
@@ -113,31 +100,13 @@ public class ImageFetcher extends ImageWorker {
                 imageView, ImageType.ALBUM);
     }
 
-    public void updateScrimImage(final AlbumScrimImage image,
-            final ColorExtractor.Callback callback) {
-        if (mUseBlur) {
-            loadCurrentBlurredArtwork(image);
-        } else {
-            loadCurrentGradientArtwork(callback);
-        }
-    }
-
     /**
      * Used to fetch the current artwork blurred.
      */
-    private void loadCurrentBlurredArtwork(final AlbumScrimImage image) {
+    public void loadCurrentBlurredArtwork(final BlurScrimImage image) {
         loadBlurImage(getCurrentCacheKey(),
                 MusicUtils.getArtistName(), MusicUtils.getAlbumName(), MusicUtils.getCurrentAlbumId(),
                 image, ImageType.ALBUM);
-    }
-
-    private void loadCurrentGradientArtwork(final ColorExtractor.Callback callback) {
-        final boolean isServiceUp = MusicUtils.isPlaybackServiceConnected();
-        if (!isServiceUp) {
-            return;
-        }
-
-        ColorExtractor.extractColors(this, callback);
     }
 
     public static String getCurrentCacheKey() {
@@ -221,28 +190,23 @@ public class ImageFetcher extends ImageWorker {
      */
     public BitmapWithColors getArtwork(final String albumName, final long albumId,
             final String artistName, boolean smallArtwork) {
-        final String key = String.valueOf(albumId);
-        final Bitmap artwork = getArtworkBitmap(albumName, albumId);
+        // Check the disk cache
+        Bitmap artwork = null;
+        String key = String.valueOf(albumId);
+
+        if (artwork == null && albumName != null && mImageCache != null) {
+            artwork = mImageCache.getBitmapFromDiskCache(key);
+        }
+        if (artwork == null && albumId >= 0 && mImageCache != null) {
+            // Check for local artwork
+            artwork = mImageCache.getArtworkFromFile(mContext, albumId);
+        }
         if (artwork != null) {
             return new BitmapWithColors(artwork, key.hashCode());
         }
 
         return LetterTileDrawable.createDefaultBitmap(mContext, key, ImageType.ALBUM, false,
                 smallArtwork);
-    }
-
-    public Bitmap getArtworkBitmap(final String albumName, final long albumId) {
-        final String key = String.valueOf(albumId);
-        Bitmap artwork = null;
-
-        if (albumName != null && mImageCache != null) {
-            artwork = mImageCache.getBitmapFromDiskCache(key);
-        }
-        if (artwork == null && albumId >= 0 && mImageCache != null) {
-            artwork = mImageCache.getArtworkFromFile(mContext, albumId);
-        }
-
-        return artwork;
     }
 
     /**
@@ -303,7 +267,7 @@ public class ImageFetcher extends ImageWorker {
 
     /**
      * Calculate an inSampleSize for use in a
-     * {@link BitmapFactory.Options} object when decoding
+     * {@link android.graphics.BitmapFactory.Options} object when decoding
      * bitmaps using the decode* methods from {@link BitmapFactory}. This
      * implementation calculates the closest inSampleSize that will result in
      * the final decoded bitmap having a width and height equal to or larger

@@ -26,6 +26,7 @@ import android.widget.Toast;
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.ui.activities.HomeActivity;
+import org.lineageos.eleven.ui.activities.SearchActivity;
 import org.lineageos.eleven.ui.activities.SettingsActivity;
 
 /**
@@ -38,7 +39,7 @@ public final class NavUtils {
     /**
      * Opens the profile of an artist.
      *
-     * @param context    The {@link Activity} to use.
+     * @param context The {@link Activity} to use.
      * @param artistName The name of the artist
      */
     public static void openArtistProfile(final Activity context, final String artistName) {
@@ -58,13 +59,13 @@ public final class NavUtils {
     /**
      * Opens the profile of an album.
      *
-     * @param context    The {@link Activity} to use.
-     * @param albumName  The name of the album
+     * @param context The {@link Activity} to use.
+     * @param albumName The name of the album
      * @param artistName The name of the album artist
-     * @param albumId    The id of the album
+     * @param albumId The id of the album
      */
     public static void openAlbumProfile(final Activity context,
-                                        final String albumName, final String artistName, final long albumId) {
+            final String albumName, final String artistName, final long albumId) {
 
         // Create a new bundle to transfer the album info
         final Bundle bundle = new Bundle();
@@ -93,8 +94,8 @@ public final class NavUtils {
     /**
      * Opens the playlist view
      *
-     * @param context      The {@link Activity} to use.
-     * @param playlistId   the id of the playlist
+     * @param context The {@link Activity} to use.
+     * @param playlistId the id of the playlist
      * @param playlistName the playlist name
      */
     public static void openPlaylist(final Activity context, final long playlistId,
@@ -123,7 +124,7 @@ public final class NavUtils {
     /**
      * Opens the sound effects panel AudioFX in LineageOS
      *
-     * @param context     The {@link Activity} to use.
+     * @param context The {@link Activity} to use.
      * @param requestCode The request code passed into startActivityForResult
      */
     public static void openEffectsPanel(final Activity context, final int requestCode) {
@@ -155,6 +156,19 @@ public final class NavUtils {
         activity.startActivity(intent);
     }
 
+    /**
+     * Opens to {@link org.lineageos.eleven.ui.activities.SearchActivity}.
+     *
+     * @param activity The {@link Activity} to use.
+     * @param query The search query.
+     */
+    public static void openSearch(final Activity activity, final String query) {
+        final Bundle bundle = new Bundle();
+        final Intent intent = new Intent(activity, SearchActivity.class);
+        intent.putExtra(SearchManager.QUERY, query);
+        intent.putExtras(bundle);
+        activity.startActivity(intent);
+    }
 
     /**
      * Opens to {@link org.lineageos.eleven.ui.activities.HomeActivity}.

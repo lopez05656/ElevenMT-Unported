@@ -16,6 +16,9 @@ package org.lineageos.eleven.ui.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,10 +27,6 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-
-import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 
 import org.lineageos.eleven.MusicStateListener;
 import org.lineageos.eleven.R;
@@ -56,7 +55,7 @@ import org.lineageos.eleven.widgets.LoadingEmptyContainer;
  * @author Andrew Neal (andrewdneal@gmail.com)
  */
 public class ArtistFragment extends MusicBrowserFragment implements
-        LoaderManager.LoaderCallbacks<SectionListContainer<Artist>>,
+        LoaderCallbacks<SectionListContainer<Artist>>,
         OnScrollListener, OnItemClickListener, MusicStateListener {
 
     /**

@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2014 The CyanogenMod Project
- * Copyright (C) 2019 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +24,17 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.Window;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.R;
@@ -53,9 +50,9 @@ import org.lineageos.eleven.ui.fragments.phone.MusicBrowserPhoneFragment;
 import org.lineageos.eleven.ui.fragments.profile.LastAddedFragment;
 import org.lineageos.eleven.ui.fragments.profile.TopTracksFragment;
 import org.lineageos.eleven.utils.ElevenUtils;
+import org.lineageos.eleven.utils.BitmapWithColors;
 import org.lineageos.eleven.utils.MusicUtils;
 import org.lineageos.eleven.utils.NavUtils;
-import org.lineageos.eleven.utils.colors.BitmapWithColors;
 
 import java.util.ArrayList;
 
@@ -95,14 +92,11 @@ public class HomeActivity extends SlidingPanelActivity implements
         mSavedInstanceState = savedInstanceState;
 
         if (!needRequestStoragePermission()) {
-            init(savedInstanceState);
+            init();
         }
     }
 
-    @Override
-    protected void init(Bundle savedInstanceState) {
-        super.init(savedInstanceState);
-
+    private void init() {
         // if we've been launched by an intent, parse it
         Intent launchIntent = getIntent();
         boolean intentHandled = false;
@@ -111,7 +105,7 @@ public class HomeActivity extends SlidingPanelActivity implements
         }
 
         // if the intent didn't cause us to load a fragment, load the music browse one
-        if (savedInstanceState == null && !mLoadedBaseFragment) {
+        if (mSavedInstanceState == null && !mLoadedBaseFragment) {
             final MusicBrowserPhoneFragment fragment = new MusicBrowserPhoneFragment();
             if (launchIntent != null) {
                 fragment.setDefaultPageIdx(launchIntent.getIntExtra(EXTRA_BROWSE_PAGE_IDX,
@@ -127,10 +121,11 @@ public class HomeActivity extends SlidingPanelActivity implements
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
 
+
         // if we are resuming from a saved instance state
-        if (savedInstanceState != null) {
+        if (mSavedInstanceState != null) {
             // track which fragments are loaded and if this is the top level activity
-            mTopLevelActivity = savedInstanceState.getBoolean(STATE_KEY_BASE_FRAGMENT);
+            mTopLevelActivity = mSavedInstanceState.getBoolean(STATE_KEY_BASE_FRAGMENT);
             mLoadedBaseFragment = mTopLevelActivity;
 
             // update the action bar based on the top most fragment
@@ -237,7 +232,7 @@ public class HomeActivity extends SlidingPanelActivity implements
 
     private void updateVisualizerColor(int color) {
         if (color == Color.TRANSPARENT) {
-            color = ContextCompat.getColor(this, R.color.visualizer_fill_color);
+            color = getResources().getColor(R.color.visualizer_fill_color);
         }
 
         // check for null since updatestatusBarColor is a async task
@@ -304,7 +299,7 @@ public class HomeActivity extends SlidingPanelActivity implements
                     // this happens when they launch search which is its own activity and then
                     // browse through that back to home activity
                     mLoadedBaseFragment = true;
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                    getActionBar().setDisplayHomeAsUpEnabled(true);
                 }
                 // the current top fragment is about to be hidden by what we are replacing
                 // it with -- so tell that fragment not to make its action bar menu items visible
@@ -482,18 +477,18 @@ public class HomeActivity extends SlidingPanelActivity implements
             ISetupActionBar setupActionBar = (ISetupActionBar) topFragment;
             setupActionBar.setupActionBar();
 
-            getSupportActionBar().setDisplayHomeAsUpEnabled(
+            getActionBar().setDisplayHomeAsUpEnabled(
                     !(topFragment instanceof MusicBrowserPhoneFragment));
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
-            @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[],
+            int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_STORAGE: {
                 if (checkPermissionGrantResults(grantResults)) {
-                    init(mSavedInstanceState);
+                    init();
                 } else {
                     finish();
                 }

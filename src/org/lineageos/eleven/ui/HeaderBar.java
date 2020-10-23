@@ -16,6 +16,7 @@
 package org.lineageos.eleven.ui;
 
 import android.content.Context;
+import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,8 +26,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
-import androidx.fragment.app.Fragment;
 
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.loaders.NowPlayingCursor;
@@ -43,8 +42,8 @@ import org.lineageos.eleven.utils.NavUtils;
 public class HeaderBar extends LinearLayout {
 
     private ImageView mMenuButton;
-    private ImageView mBackButton;
     private ImageView mSearchButton;
+    private ImageView mBackButton;
     private TextView mTitleText;
     private PopupMenu mPopupMenu;
     private Fragment mFragment;
@@ -68,23 +67,19 @@ public class HeaderBar extends LinearLayout {
                 showPopupMenu();
             }
         });
+
+        mSearchButton = (ImageView)findViewById(R.id.header_bar_search_button);
+        mSearchButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+            public void onClick(View v) {
+                NavUtils.openSearch(mFragment.getActivity(), "");
+            }
+        });
+
+
         mBackButton = (ImageView)findViewById(R.id.header_bar_up);
 
         mTitleText = (TextView)findViewById(R.id.header_bar_title);
-    }
-    public void hideSearchButton() {
-        mSearchButton.setVisibility(View.GONE);
-    }
-
-    public void showSearchButton() {
-        mSearchButton.setVisibility(View.VISIBLE);
-    }
-    public void hideBackButton() {
-        mBackButton.setVisibility(View.GONE);
-    }
-
-    public void showBackButton() {
-        mBackButton.setVisibility(View.VISIBLE);
     }
 
     /**

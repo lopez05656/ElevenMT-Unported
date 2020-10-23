@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2012 Andrew Neal
  * Copyright (C) 2014 The CyanogenMod Project
- * Copyright (C) 2018-2020 The LineageOS Project
+ * Copyright (C) 2019 The LineageOS Project
  * Copyright (C) 2019 SHIFT GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
@@ -41,13 +42,11 @@ import android.provider.MediaStore.Audio.Playlists;
 import android.provider.MediaStore.Audio.PlaylistsColumns;
 import android.provider.MediaStore.MediaColumns;
 import android.provider.Settings;
+import android.support.annotation.WorkerThread;
 import android.util.Log;
+import android.view.Menu;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
-
-import org.lineageos.eleven.BuildConfig;
 import org.lineageos.eleven.Config.IdType;
 import org.lineageos.eleven.Config.SmartPlaylistType;
 import org.lineageos.eleven.IElevenService;
@@ -60,22 +59,21 @@ import org.lineageos.eleven.loaders.PlaylistSongLoader;
 import org.lineageos.eleven.loaders.SongLoader;
 import org.lineageos.eleven.loaders.TopTracksLoader;
 import org.lineageos.eleven.locale.LocaleUtils;
+import org.lineageos.eleven.menu.FragmentMenuItems;
 import org.lineageos.eleven.model.AlbumArtistDetails;
 import org.lineageos.eleven.provider.RecentStore;
 import org.lineageos.eleven.provider.SongPlayCount;
 import org.lineageos.eleven.service.MusicPlaybackTrack;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * A collection of helpers directly related to music or Eleven's service.
@@ -85,8 +83,12 @@ import java.util.Set;
 public final class MusicUtils {
     public static final String TAG = MusicUtils.class.getSimpleName();
 
+    public static IElevenService mService = null;
+
+    private static final WeakHashMap<Context, ServiceBinder> mConnectionMap;
+
     private static final long[] sEmptyList;
-    private static Set<WeakReference<ServiceToken>> sKnownTokens = new HashSet<>();
+
     private static ContentValues[] mContentValuesCache = null;
 
     private static final int MIN_VALID_YEAR = 1900; // used to remove invalid years from metadata
@@ -98,6 +100,7 @@ public final class MusicUtils {
     public static final long UPDATE_FREQUENCY_FAST_MS = 30;
 
     static {
+        mConnectionMap = new WeakHashMap<>();
         sEmptyList = new long[0];
     }
 
@@ -112,13 +115,17 @@ public final class MusicUtils {
      */
     public static ServiceToken bindToService(final Context context,
             final ServiceConnection callback) {
+        Activity realActivity = ((Activity)context).getParent();
+        if (realActivity == null) {
+            realActivity = (Activity)context;
+        }
+        final ContextWrapper contextWrapper = new ContextWrapper(realActivity);
+        contextWrapper.startService(new Intent(contextWrapper, MusicPlaybackService.class));
         final ServiceBinder binder = new ServiceBinder(callback);
-        final Intent intent = new Intent(context, MusicPlaybackService.class);
-        final int flags = Context.BIND_ADJUST_WITH_ACTIVITY | Context.BIND_AUTO_CREATE;
-        if (context.bindService(intent, binder, flags)) {
-            ServiceToken token = new ServiceToken(context, binder);
-            sKnownTokens.add(new WeakReference<>(token));
-            return token;
+        if (contextWrapper.bindService(
+                new Intent().setClass(contextWrapper, MusicPlaybackService.class), binder, 0)) {
+            mConnectionMap.put(contextWrapper, binder);
+            return new ServiceToken(contextWrapper);
         }
         return null;
     }
@@ -130,27 +137,24 @@ public final class MusicUtils {
         if (token == null) {
             return;
         }
-        final ServiceBinder binder = token.mBinder;
-        if (binder == null) {
+        final ContextWrapper mContextWrapper = token.mWrappedContext;
+        final ServiceBinder mBinder = mConnectionMap.remove(mContextWrapper);
+        if (mBinder == null) {
             return;
         }
-        token.discard();
-        for (WeakReference<ServiceToken> ref : sKnownTokens) {
-            if (ref.get() == token) {
-                sKnownTokens.remove(ref);
-                break;
-            }
+        mContextWrapper.unbindService(mBinder);
+        if (mConnectionMap.isEmpty()) {
+            mService = null;
         }
     }
 
     public static final class ServiceBinder implements ServiceConnection {
         private final ServiceConnection mCallback;
-        private IElevenService mServiceConnection;
 
         /**
          * Constructor of <code>ServiceBinder</code>
          *
-         * @param callback The {@link ServiceConnection} to use
+         * @param context The {@link ServiceConnection} to use
          */
         public ServiceBinder(final ServiceConnection callback) {
             mCallback = callback;
@@ -158,7 +162,7 @@ public final class MusicUtils {
 
         @Override
         public void onServiceConnected(final ComponentName className, final IBinder service) {
-            mServiceConnection = IElevenService.Stub.asInterface(service);
+            mService = IElevenService.Stub.asInterface(service);
             if (mCallback != null) {
                 mCallback.onServiceConnected(className, service);
             }
@@ -169,45 +173,25 @@ public final class MusicUtils {
             if (mCallback != null) {
                 mCallback.onServiceDisconnected(className);
             }
-            mServiceConnection = null;
+            mService = null;
         }
     }
 
     public static final class ServiceToken {
-        private final WeakReference<Context> mContextRef;
-        private final ServiceBinder mBinder;
+        public ContextWrapper mWrappedContext;
 
         /**
          * Constructor of <code>ServiceToken</code>
          *
-         * @param context The context for the bind operation
-         * @param binder The {@link ServiceBinder} this token references
+         * @param context The {@link ContextWrapper} to use
          */
-        private ServiceToken(final Context context, final ServiceBinder binder) {
-            mContextRef = new WeakReference<>(context);
-            mBinder = binder;
-        }
-
-        private void discard() {
-            Context context = mContextRef.get();
-            if (context != null) {
-                context.unbindService(mBinder);
-            }
+        public ServiceToken(final ContextWrapper context) {
+            mWrappedContext = context;
         }
     }
 
-    public static IElevenService getService() {
-        for (WeakReference<ServiceToken> ref : sKnownTokens) {
-            ServiceToken token = ref.get();
-            IElevenService service = token != null ? token.mBinder.mServiceConnection : null;
-            if (service != null) {
-                return service;
-            }
-        }
-        return null;
-    }
     public static boolean isPlaybackServiceConnected() {
-        return getService() != null;
+        return mService != null;
     }
 
     /**
@@ -221,7 +205,7 @@ public final class MusicUtils {
      *         albums, songs, genres, and playlists.
      */
     public static String makeLabel(final Context context, final int pluralInt,
-                                   final int number) {
+            final int number) {
         return context.getResources().getQuantityString(pluralInt, number, number);
     }
 
@@ -232,7 +216,6 @@ public final class MusicUtils {
      * @param secs The track in seconds.
      * @return Duration of a track that's properly formatted.
      */
-    @NonNull
     public static String makeShortTimeString(final Context context, long secs) {
         long hours, mins;
 
@@ -282,7 +265,7 @@ public final class MusicUtils {
      * @return the combined string
      */
     public static String makeCombinedString(final Context context, final String first,
-                                            final String second) {
+                                                  final String second) {
         final String formatter = context.getResources().getString(R.string.combine_two_strings);
         return String.format(formatter, first, second);
     }
@@ -292,12 +275,37 @@ public final class MusicUtils {
      */
     public static void next() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                service.next();
+            if (mService != null) {
+                mService.next();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "next()", exc);
+        }
+    }
+
+    /**
+     * Set shake to play status
+     */
+    public static void setShakeToPlayEnabled(final boolean enabled) {
+        try {
+            if (mService != null) {
+                mService.setShakeToPlayEnabled(enabled);
+            }
+        } catch (final RemoteException exc) {
+            Log.e(TAG, "setShakeToPlayEnabled(" + enabled + ")", exc);
+        }
+    }
+
+    /**
+     * Set show album art on lockscreen
+     */
+    public static void setShowAlbumArtOnLockscreen(final boolean enabled) {
+        try {
+            if (mService != null) {
+                mService.setLockscreenAlbumArt(enabled);
+            }
+        } catch (final RemoteException exc) {
+            Log.e(TAG, "setLockscreenAlbumArt(" + enabled + ")", exc);
         }
     }
 
@@ -339,12 +347,11 @@ public final class MusicUtils {
      */
     public static void playOrPause() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                if (service.isPlaying()) {
-                    service.pause();
+            if (mService != null) {
+                if (mService.isPlaying()) {
+                    mService.pause();
                 } else {
-                    service.play();
+                    mService.play();
                 }
             }
         } catch (final Exception exc) {
@@ -357,20 +364,19 @@ public final class MusicUtils {
      */
     public static void cycleRepeat() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                switch (service.getRepeatMode()) {
+            if (mService != null) {
+                switch (mService.getRepeatMode()) {
                     case MusicPlaybackService.REPEAT_NONE:
-                        service.setRepeatMode(MusicPlaybackService.REPEAT_ALL);
+                        mService.setRepeatMode(MusicPlaybackService.REPEAT_ALL);
                         break;
                     case MusicPlaybackService.REPEAT_ALL:
-                        service.setRepeatMode(MusicPlaybackService.REPEAT_CURRENT);
-                        if (service.getShuffleMode() != MusicPlaybackService.SHUFFLE_NONE) {
-                            service.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
+                        mService.setRepeatMode(MusicPlaybackService.REPEAT_CURRENT);
+                        if (mService.getShuffleMode() != MusicPlaybackService.SHUFFLE_NONE) {
+                            mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
                         }
                         break;
                     default:
-                        service.setRepeatMode(MusicPlaybackService.REPEAT_NONE);
+                        mService.setRepeatMode(MusicPlaybackService.REPEAT_NONE);
                         break;
                 }
             }
@@ -384,20 +390,19 @@ public final class MusicUtils {
      */
     public static void cycleShuffle() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                switch (service.getShuffleMode()) {
+            if (mService != null) {
+                switch (mService.getShuffleMode()) {
                     case MusicPlaybackService.SHUFFLE_NONE:
-                        service.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
-                        if (service.getRepeatMode() == MusicPlaybackService.REPEAT_CURRENT) {
-                            service.setRepeatMode(MusicPlaybackService.REPEAT_ALL);
+                        mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
+                        if (mService.getRepeatMode() == MusicPlaybackService.REPEAT_CURRENT) {
+                            mService.setRepeatMode(MusicPlaybackService.REPEAT_ALL);
                         }
                         break;
                     case MusicPlaybackService.SHUFFLE_NORMAL:
-                        service.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
+                        mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
                         break;
                     case MusicPlaybackService.SHUFFLE_AUTO:
-                        service.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
+                        mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NONE);
                         break;
                     default:
                         break;
@@ -412,10 +417,9 @@ public final class MusicUtils {
      * @return True if we're playing music, false otherwise.
      */
     public static boolean isPlaying() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.isPlaying();
+                return mService.isPlaying();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "isPlaying()", exc);
             }
@@ -427,10 +431,9 @@ public final class MusicUtils {
      * @return The current shuffle mode.
      */
     public static int getShuffleMode() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getShuffleMode();
+                return mService.getShuffleMode();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getShuffleMode()", exc);
             }
@@ -442,10 +445,9 @@ public final class MusicUtils {
      * @return The current repeat mode.
      */
     public static int getRepeatMode() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getRepeatMode();
+                return mService.getRepeatMode();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getRepeatMode()", exc);
             }
@@ -457,10 +459,9 @@ public final class MusicUtils {
      * @return The current track name.
      */
     public static String getTrackName() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getTrackName();
+                return mService.getTrackName();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getTrackName()", exc);
             }
@@ -472,10 +473,9 @@ public final class MusicUtils {
      * @return The current artist name.
      */
     public static String getArtistName() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getArtistName();
+                return mService.getArtistName();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getArtistName()", exc);
             }
@@ -487,10 +487,9 @@ public final class MusicUtils {
      * @return The current album name.
      */
     public static String getAlbumName() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getAlbumName();
+                return mService.getAlbumName();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getAlbumName()", exc);
             }
@@ -502,10 +501,9 @@ public final class MusicUtils {
      * @return The current album Id.
      */
     public static long getCurrentAlbumId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getAlbumId();
+                return mService.getAlbumId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getCurrentAlbumId()", exc);
             }
@@ -517,10 +515,9 @@ public final class MusicUtils {
      * @return The current song Id.
      */
     public static long getCurrentAudioId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getAudioId();
+                return mService.getAudioId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getCurrentAudioId()", exc);
             }
@@ -532,10 +529,9 @@ public final class MusicUtils {
      * @return The current Music Playback Track
      */
     public static MusicPlaybackTrack getCurrentTrack() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getCurrentTrack();
+                return mService.getCurrentTrack();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getCurrentTrack()", exc);
             }
@@ -547,10 +543,9 @@ public final class MusicUtils {
      * @return The Music Playback Track at the specified index
      */
     public static MusicPlaybackTrack getTrack(int index) {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getTrack(index);
+                return mService.getTrack(index);
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getTrack(" + index + ")", exc);
             }
@@ -562,10 +557,9 @@ public final class MusicUtils {
      * @return The next song Id.
      */
     public static long getNextAudioId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getNextAudioId();
+                return mService.getNextAudioId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getNextAudioId()", exc);
             }
@@ -577,10 +571,9 @@ public final class MusicUtils {
      * @return The previous song Id.
      */
     public static long getPreviousAudioId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getPreviousAudioId();
+                return mService.getPreviousAudioId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getPreviousAudioId()", exc);
             }
@@ -592,10 +585,9 @@ public final class MusicUtils {
      * @return The current artist Id.
      */
     public static long getCurrentArtistId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getArtistId();
+                return mService.getArtistId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getArtistId()", exc);
             }
@@ -607,10 +599,9 @@ public final class MusicUtils {
      * @return The audio session Id.
      */
     public static int getAudioSessionId() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getAudioSessionId();
+                return mService.getAudioSessionId();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getAudioSessionId()", exc);
             }
@@ -623,9 +614,8 @@ public final class MusicUtils {
      */
     public static long[] getQueue() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.getQueue();
+            if (mService != null) {
+                return mService.getQueue();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "getQueue()", exc);
@@ -638,9 +628,8 @@ public final class MusicUtils {
      */
     public static long getQueueItemAtPosition(int position) {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.getQueueItemAtPosition(position);
+            if (mService != null) {
+                return mService.getQueueItemAtPosition(position);
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "getQueueItemAtPosition(" + position + ")", exc);
@@ -653,9 +642,8 @@ public final class MusicUtils {
      */
     public static int getQueueSize() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.getQueueSize();
+            if (mService != null) {
+                return mService.getQueueSize();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "getQueueSize()", exc);
@@ -668,9 +656,8 @@ public final class MusicUtils {
      */
     public static int getQueuePosition() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.getQueuePosition();
+            if (mService != null) {
+                return mService.getQueuePosition();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "getQueuePosition()", exc);
@@ -682,10 +669,9 @@ public final class MusicUtils {
      * @return The queue history size
      */
     public static int getQueueHistorySize() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getQueueHistorySize();
+                return mService.getQueueHistorySize();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getQueueHistorySize()", exc);
             }
@@ -697,10 +683,9 @@ public final class MusicUtils {
      * @return The queue history position at the position
      */
     public static int getQueueHistoryPosition(int position) {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getQueueHistoryPosition(position);
+                return mService.getQueueHistoryPosition(position);
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getQueueHistoryPosition(" + position + ")", exc);
             }
@@ -712,10 +697,9 @@ public final class MusicUtils {
      * @return The queue history
      */
     public static int[] getQueueHistoryList() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.getQueueHistoryList();
+                return mService.getQueueHistoryList();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "getQueueHistoryList()", exc);
             }
@@ -728,10 +712,9 @@ public final class MusicUtils {
      * @return removes track from a playlist or the queue.
      */
     public static int removeTrack(final long id) {
-        IElevenService service = getService();
         try {
-            if (service != null) {
-                return service.removeTrack(id);
+            if (mService != null) {
+                return mService.removeTrack(id);
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "removeTrack(" + id + ")", exc);
@@ -749,9 +732,8 @@ public final class MusicUtils {
      */
     public static boolean removeTrackAtPosition(final long id, final int position) {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.removeTrackAtPosition(id, position);
+            if (mService != null) {
+                return mService.removeTrackAtPosition(id, position);
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "removeTrackAtPosition(" + id + ", " + position + ")", exc);
@@ -869,8 +851,7 @@ public final class MusicUtils {
      * @param uri The source of the file
      */
     public static void playFile(final Context context, final Uri uri) {
-        IElevenService service = getService();
-        if (uri == null || service == null) {
+        if (uri == null || mService == null) {
             return;
         }
 
@@ -885,9 +866,9 @@ public final class MusicUtils {
         }
 
         try {
-            service.stop();
-            service.openFile(filename);
-            service.play();
+            mService.stop();
+            mService.openFile(filename);
+            mService.play();
         } catch (final RemoteException exc) {
             Log.e(TAG, "playFile(" + uri + ")", exc);
         }
@@ -902,19 +883,18 @@ public final class MusicUtils {
     public static void playAll(final Context context, final long[] list, int position,
                                final long sourceId, final IdType sourceType,
                                final boolean forceShuffle) {
-        IElevenService service = getService();
-        if (list == null || list.length == 0 || service == null) {
+        if (list == null || list.length == 0 || mService == null) {
             return;
         }
         try {
             if (forceShuffle) {
-                service.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
+                mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
             }
             if (position < 0) {
                 position = 0;
             }
-            service.open(list, forceShuffle ? -1 : position, sourceId, sourceType.mId);
-            service.play();
+            mService.open(list, forceShuffle ? -1 : position, sourceId, sourceType.mId);
+            mService.play();
         } catch (final RemoteException exc) {
             Log.e(TAG, "playAll(...)", exc);
         }
@@ -924,12 +904,11 @@ public final class MusicUtils {
      * @param list The list to enqueue.
      */
     public static void playNext(final long[] list, final long sourceId, final IdType sourceType) {
-        IElevenService service = getService();
-        if (service == null) {
+        if (mService == null) {
             return;
         }
         try {
-            service.enqueue(list, MusicPlaybackService.NEXT, sourceId, sourceType.mId);
+            mService.enqueue(list, MusicPlaybackService.NEXT, sourceId, sourceType.mId);
         } catch (final RemoteException exc) {
             Log.e(TAG, "playNext(" + Arrays.asList(list) + ", " + sourceId + ", " + sourceType + ")", exc);
         }
@@ -945,24 +924,23 @@ public final class MusicUtils {
         }
 
         final long[] mTrackList = mTrackListTmp;
-        IElevenService service = getService();
-        if (mTrackList.length == 0 || service == null) {
+        if (mTrackList.length == 0 || mService == null) {
             return;
         }
 
         try {
-            service.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
-            final long mCurrentId = service.getAudioId();
+            mService.setShuffleMode(MusicPlaybackService.SHUFFLE_NORMAL);
+            final long mCurrentId = mService.getAudioId();
             final int mCurrentQueuePosition = getQueuePosition();
             if (mCurrentQueuePosition == 0 && mCurrentId == mTrackList[0]) {
                 final long[] mPlaylist = getQueue();
                 if (Arrays.equals(mTrackList, mPlaylist)) {
-                    service.play();
+                    mService.play();
                     return;
                 }
             }
-            service.open(mTrackList, -1, -1, IdType.NA.mId);
-            service.play();
+            mService.open(mTrackList, -1, -1, IdType.NA.mId);
+            mService.play();
         } catch (final RemoteException exc) {
             Log.e(TAG, "shuffleAll()", exc);
         }
@@ -976,11 +954,8 @@ public final class MusicUtils {
      * @return The ID for a playlist.
      */
     public static long getIdForPlaylist(final Context context, final String name) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "getIdForPlaylist(" + name + ")");
-        }
-
-        try (Cursor cursor = context.getContentResolver().query(Playlists.EXTERNAL_CONTENT_URI,
+        try (Cursor cursor = context.getContentResolver().query(
+                Playlists.EXTERNAL_CONTENT_URI,
                 new String[]{BaseColumns._ID}, PlaylistsColumns.NAME + "=?",
                 new String[]{name}, PlaylistsColumns.NAME)) {
             if (cursor != null) {
@@ -1040,7 +1015,7 @@ public final class MusicUtils {
      * @return The ID for an album.
      */
     public static long getIdForAlbum(final Context context, final String albumName,
-                                     final String artistName) {
+            final String artistName) {
         try (Cursor cursor = context.getContentResolver().query(
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[]{BaseColumns._ID},
                 AlbumColumns.ALBUM + "=? AND " + AlbumColumns.ARTIST + "=?", new String[]{
@@ -1181,7 +1156,7 @@ public final class MusicUtils {
      * @param playlistId The id of the playlist being removed from.
      */
     public static void removeFromPlaylist(final Context context, final long id,
-                                          final long playlistId) {
+            final long playlistId) {
         final Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
         final ContentResolver resolver = context.getContentResolver();
         resolver.delete(uri, Playlists.Members.AUDIO_ID + " = ? ", new String[] {
@@ -1199,12 +1174,11 @@ public final class MusicUtils {
      */
     public static void addToQueue(final Context context, final long[] list, long sourceId,
                                   IdType sourceType) {
-        IElevenService service = getService();
-        if (service == null) {
+        if (mService == null) {
             return;
         }
         try {
-            service.enqueue(list, MusicPlaybackService.LAST, sourceId, sourceType.mId);
+            mService.enqueue(list, MusicPlaybackService.LAST, sourceId, sourceType.mId);
             final String message = makeLabel(context, R.plurals.NNNtrackstoqueue, list.length);
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         } catch (final RemoteException exc) {
@@ -1356,9 +1330,8 @@ public final class MusicUtils {
      */
     public static String getFilePath() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                return service.getPath();
+            if (mService != null) {
+                return mService.getPath();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "getFilePath()", exc);
@@ -1372,9 +1345,8 @@ public final class MusicUtils {
      */
     public static void moveQueueItem(final int from, final int to) {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                service.moveQueueItem(from, to);
+            if (mService != null) {
+                mService.moveQueueItem(from, to);
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "moveQueueItem(" + from + ", " + to + ")", exc);
@@ -1477,13 +1449,33 @@ public final class MusicUtils {
     }
 
     /**
+     * Creates a sub menu used to add items to a new playlist or an existing
+     * one.
+     *
+     * @param context The {@link Context} to use.
+     * @param groupId The group Id of the menu.
+     * @param menu The {@link Menu} to add to.
+     */
+    public static void makePlaylistMenu(final Context context, final int groupId,
+                                        final Menu menu) {
+        menu.clear();
+
+        final List<String> menuItemList = makePlaylist(context);
+        for (final String name : menuItemList) {
+            final Intent intent = new Intent();
+            intent.putExtra("playlist", getIdForPlaylist(context, name));
+            menu.add(groupId, FragmentMenuItems.PLAYLIST_SELECTED, Menu.NONE, name)
+                    .setIntent(intent);
+        }
+    }
+
+    /**
      * Called when one of the lists should refresh or requery.
      */
     public static void refresh() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                service.refresh();
+            if (mService != null) {
+                mService.refresh();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "refresh()", exc);
@@ -1495,9 +1487,8 @@ public final class MusicUtils {
      */
     public static void playlistChanged() {
         try {
-            IElevenService service = getService();
-            if (service != null) {
-                service.playlistChanged();
+            if (mService != null) {
+                mService.playlistChanged();
             }
         } catch (final RemoteException exc) {
             Log.e(TAG, "playlistChanged()", exc);
@@ -1510,10 +1501,9 @@ public final class MusicUtils {
      * @param position The position to seek to
      */
     public static void seek(final long position) {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                service.seek(position);
+                mService.seek(position);
             } catch (final RemoteException exc) {
                 Log.e(TAG, "seek(" + position + ")", exc);
             }
@@ -1527,10 +1517,9 @@ public final class MusicUtils {
      * @param deltaInMs The delta in ms to seek from the current position
      */
     public static void seekRelative(final long deltaInMs) {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                service.seekRelative(deltaInMs);
+                mService.seekRelative(deltaInMs);
             } catch (final RemoteException exc) {
                 Log.e(TAG, "seekRelative(" + deltaInMs + ")", exc);
             } catch (final IllegalStateException exc) {
@@ -1543,10 +1532,9 @@ public final class MusicUtils {
      * @return The current position time of the track
      */
     public static long position() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.position();
+                return mService.position();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "position()", exc);
             } catch (final IllegalStateException exc) {
@@ -1560,10 +1548,9 @@ public final class MusicUtils {
      * @return The total length of the current track
      */
     public static long duration() {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                return service.duration();
+                return mService.duration();
             } catch (final RemoteException exc) {
                 Log.e(TAG, "duration()", exc);
             } catch (final IllegalStateException exc) {
@@ -1574,20 +1561,12 @@ public final class MusicUtils {
     }
 
     /**
-     * @return The total length of the current track in seconds
-     */
-    public static int durationInSeconds() {
-        return ((int) duration() / 1000);
-    }
-
-    /**
      * @param position The position to move the queue to
      */
     public static void setQueuePosition(final int position) {
-        IElevenService service = getService();
-        if (service != null) {
+        if (mService != null) {
             try {
-                service.setQueuePosition(position);
+                mService.setQueuePosition(position);
             } catch (final RemoteException exc) {
                 Log.e(TAG, "setQueuePosition(" + position + ")", exc);
             }
@@ -1598,9 +1577,8 @@ public final class MusicUtils {
      * Clears the queue
      */
     public static void clearQueue() {
-        IElevenService service = getService();
         try {
-            service.removeTracks(0, Integer.MAX_VALUE);
+            mService.removeTracks(0, Integer.MAX_VALUE);
         } catch (final RemoteException exc) {
             Log.e(TAG, "clearQueue()", exc);
         }

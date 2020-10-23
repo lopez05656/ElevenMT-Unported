@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2012 Andrew Neal
-  Copyright (C) 2014 The CyanogenMod Project
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,15 +14,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<org.lineageos.eleven.widgets.SquareView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/square_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+<searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:imeOptions="actionSearch"
+    android:label="@string/menu_search"
+    android:searchSuggestIntentAction="android.intent.action.SEARCH"
+    android:searchSuggestSelection=" ? "
+    android:searchSuggestThreshold="2"
+    android:voiceSearchMode="showVoiceSearchButton|launchRecognizer" >
 
-    <org.lineageos.eleven.widgets.SquareImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop" />
-
-</org.lineageos.eleven.widgets.SquareView>
+</searchable>

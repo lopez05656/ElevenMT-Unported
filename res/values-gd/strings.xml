@@ -2,7 +2,6 @@
 <!--
      Copyright (C) 2012-2013 Andrew Neal
      Copyright (C) 2012-2014 The CyanogenMod Project
-     Copyright (C) 2017-2020 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -30,6 +29,7 @@
     <string name="header_top_songs">Brod nan òran</string>
     <string name="header_all_songs">A h-uile òran</string>
     <string name="menu_settings">Roghainnean</string>
+    <string name="menu_search">Lorg</string>
     <string name="menu_shuffle_item">Air thuaiream</string>
     <string name="menu_shuffle_all">Na h-uile air thuaiream</string>
     <string name="menu_shuffle_playlist">Cuir an liosta-chluich air thuaiream</string>
@@ -120,12 +120,16 @@
     <string name="settings_show_lyrics_summary">Airson òrain aig a bheil faidhle srt</string>
     <string name="settings_shake_to_play">Crath airson cluich</string>
     <string name="settings_shake_to_play_summary">Crath an t-uidheam agad airson an ath-òran a chluich</string>
+    <string name="settings_lockscreen_album_art">Obair-ealain albaman air an sgrìn-ghlasaidh</string>
+    <string name="settings_lockscreen_album_art_summary">Cuir obair-ealain an albaim an àite cùlaibh na sgrìn-ghlasaidh</string>
     <string name="app_widget_small">Ceòl: 4 \u00d7 1</string>
     <string name="app_widget_large">Ceòl: 4 \u00d7 2</string>
     <string name="app_widget_large_alt">Ceòl: 4 \u00d7 2 (roghainn eile)</string>
     <string name="app_widget_recent">Ceòl: Air èisteachd o chionn ghoirid</string>
     <string name="no_effects_for_you">Cha b’ urrainn dhuinn an cothromaiche fhosgladh.</string>
     <string name="empty_music">Cleachd càball USB airson lethbhreac dhen cheòl air a’ choimpiutair agad a chur air an uidheam agad.</string>
+    <string name="empty_search">Cha deach toradh a lorg</string>
+    <string name="empty_search_check">Dèan cinnteach gu bheil e air a litreachadh gun mhearachd no feuch facal-luirg eile.</string>
     <string name="empty_favorite">Nochdaidh òrain a chomharraich thu mar annsachdan an-seo.</string>
     <string name="empty_recent_main">Cha do chluich thu òran o chionn ghoirid</string>
     <string name="empty_recent">Nochdaidh òrain ris an do dh’èist thu o chionn ghoirid an-seo.</string>
@@ -161,6 +165,7 @@
     <string name="footer_search_albums">Seall a h-uile albam</string>
     <string name="footer_search_songs">Seall a h-uile òran</string>
     <string name="footer_search_playlists">Seall a h-uile liosta-chluich</string>
+    <string name="searchHint">Lorg ceòl</string>
     <string name="search_title_artists">A h-uile neach-ciùil “%s”</string>
     <string name="search_title_albums">A h-uile albam “%s”</string>
     <string name="search_title_songs">A h-uile òran “%s”</string>

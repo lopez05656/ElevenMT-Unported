@@ -1,6 +1,8 @@
 
 package org.lineageos.eleven.loaders;
 
+import static org.lineageos.eleven.utils.MusicUtils.mService;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.AbstractCursor;
@@ -273,16 +275,19 @@ public class NowPlayingCursor extends AbstractCursor {
      * @return True if sucessfull, false othersise
      */
     public boolean removeItem(final int which) {
-        if (!MusicUtils.removeTrackAtPosition(mNowPlaying[which], which)) {
-            return false;
+        try {
+            if (mService.removeTracks(which, which) == 0) {
+                return false;
+            }
+            int i = which;
+            mSize--;
+            while (i < mSize) {
+                mNowPlaying[i] = mNowPlaying[i + 1];
+                i++;
+            }
+            onMove(-1, mCurPos);
+        } catch (final RemoteException ignored) {
         }
-        int i = which;
-        mSize--;
-        while (i < mSize) {
-            mNowPlaying[i] = mNowPlaying[i + 1];
-            i++;
-        }
-        onMove(-1, mCurPos);
         return true;
     }
 }

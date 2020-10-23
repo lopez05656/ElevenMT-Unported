@@ -25,25 +25,26 @@ public final class SortOrder {
     /** This class is never instantiated */
     public SortOrder() {
     }
+
     /**
      * Artist sort order entries.
      */
     public static interface ArtistSortOrder {
+        /* Artist sort order A-Z */
+        public final static String ARTIST_A_Z = MediaStore.Audio.Artists.DEFAULT_SORT_ORDER;
 
-            /* Artist sort order A-Z */
-            public final static String ARTIST_A_Z = MediaStore.Audio.Artists.DEFAULT_SORT_ORDER;
+        /* Artist sort order Z-A */
+        public final static String ARTIST_Z_A = ARTIST_A_Z + " DESC";
 
-            /* Artist sort order Z-A */
-            public final static String ARTIST_Z_A = ARTIST_A_Z + " DESC";
+        /* Artist sort order number of songs */
+        public final static String ARTIST_NUMBER_OF_SONGS = MediaStore.Audio.Artists.NUMBER_OF_TRACKS
+                + " DESC";
 
-            /* Artist sort order number of songs */
-            public final static String ARTIST_NUMBER_OF_SONGS = MediaStore.Audio.Artists.NUMBER_OF_TRACKS
-                    + " DESC";
-
-            /* Artist sort order number of albums */
-            public final static String ARTIST_NUMBER_OF_ALBUMS = MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
-                    + " DESC";
+        /* Artist sort order number of albums */
+        public final static String ARTIST_NUMBER_OF_ALBUMS = MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
+                + " DESC";
     }
+
     /**
      * Album sort order entries.
      */
