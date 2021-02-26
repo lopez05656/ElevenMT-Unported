@@ -25,9 +25,9 @@
         android:layout_width="127dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@color/white"
+        android:background="@color/background_color"
         android:minHeight="?attr/actionBarSize"
-        android:titleTextColor="@color/black">
+        android:titleTextColor="@color/default_text_color">
 
         <TextView
             android:id="@+id/toolbar_title"
@@ -35,9 +35,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:fontFamily="@font/gsansmedium"
             android:gravity="end"
             android:text="@string/app_name"
-            android:textColor="@color/black" />
+            android:textColor="@color/default_text_color" />
     </androidx.appcompat.widget.Toolbar>
 
     <!-- Layout for content is here. This can be a RelativeLayout  -->

@@ -18,13 +18,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="org.lineageos.eleven"
-    android:versionCode="541"
-    android:versionName="5.4.1"
+    android:versionCode="550"
+    android:versionName="5.5.0.1"
     tools:ignore="GradleOverrides">
 
     <uses-sdk
         android:minSdkVersion="26"
-        android:targetSdkVersion="28" />
+        android:targetSdkVersion="29" />
 
     <original-package android:name="com.cyanogenmod.eleven" />
 
@@ -32,8 +32,6 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- Used to check for a network connection -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Used to download images -->
-    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Used to keep the service running when the phone sleeps -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- The main service uses a sticky broadcast -->

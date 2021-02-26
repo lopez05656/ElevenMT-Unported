@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2012 Andrew Neal
  * Copyright (C) 2014 The CyanogenMod Project
- * Copyright (C) 2018-2020 The LineageOS Project
+ * Copyright (C) 2018-2021 The LineageOS Project
  * Copyright (C) 2019 SHIFT GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.lineageos.eleven.ui.activities;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
@@ -27,9 +27,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.view.MenuItem;
-import android.widget.TextView;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -40,12 +41,18 @@ import org.lineageos.eleven.utils.MusicUtils;
 import org.lineageos.eleven.utils.PreferenceUtils;
 
 public class SettingsActivity extends AppCompatActivity {
-    TextView textView;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -55,8 +62,10 @@ public class SettingsActivity extends AppCompatActivity {
             finish();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
+
     public static class SettingsFragment extends PreferenceFragmentCompat implements
             ServiceConnection, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -69,25 +78,18 @@ public class SettingsActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
 
             final Preference deleteCache = findPreference("delete_cache");
-            deleteCache.setOnPreferenceClickListener(preference -> {
-                new AlertDialog.Builder(getContext())
-                        .setMessage(R.string.delete_warning)
-                        .setPositiveButton(android.R.string.ok, (dialog, which) ->
-                                ImageFetcher.getInstance(getContext()).clearCaches())
-                        .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
-                        .show();
-                return true;
-            });
-          // final Preference dark_theme = findPreference("dark_theme");
-        //    deleteCache.setOnPreferenceClickListener(preference -> {
-            //    new AlertDialog.Builder(getContext())
-          //              .setMessage(R.string.delete_warning)
-         //               .setPositiveButton(android.R.string.ok, (dialog, which) ->
-          //                      ImageFetcher.getInstance(getContext()).clearCaches())
-       //                 .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
-         //               .show();
-       //         return true;
-     //       });
+            if (deleteCache != null) {
+                deleteCache.setOnPreferenceClickListener(preference -> {
+                    new AlertDialog.Builder(getContext())
+                            .setMessage(R.string.delete_warning)
+                            .setPositiveButton(android.R.string.ok, (dialog, which) ->
+                                    ImageFetcher.getInstance(getContext()).clearCaches())
+                            .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
+                            .show();
+                    return true;
+                });
+            }
+
             PreferenceUtils.getInstance(getContext()).setOnSharedPreferenceChangeListener(this);
         }
 
@@ -131,18 +133,23 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            final Activity activity = getActivity();
             switch (key) {
                 case PreferenceUtils.SHOW_VISUALIZER: {
                     final boolean showVisualizer = sharedPreferences.getBoolean(key, false);
-                    if (showVisualizer && !PreferenceUtils.canRecordAudio(getActivity())) {
-                        PreferenceUtils.requestRecordAudio(getActivity());
+                    if (showVisualizer && activity != null &&
+                            !PreferenceUtils.canRecordAudio(activity)) {
+                        PreferenceUtils.requestRecordAudio(activity);
                     }
                     break;
                 }
                 case PreferenceUtils.USE_BLUR: {
                     final boolean useBlur = sharedPreferences.getBoolean(key, false);
-                    ImageFetcher.getInstance(getActivity()).setUseBlur(useBlur);
-                    ImageFetcher.getInstance(getActivity()).clearCaches();
+                    if (activity != null) {
+                        final ImageFetcher fetcher = ImageFetcher.getInstance(activity);
+                        fetcher.setUseBlur(useBlur);
+                        fetcher.clearCaches();
+                    }
                     break;
                 }
                 case PreferenceUtils.SHAKE_TO_PLAY: {
