@@ -37,6 +37,13 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <style name="ActionBarTitle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textAlignment">center</item>
+        <item name="fontFamily">@font/gsansmedium</item>
+        <item name="android:textColor">@color/default_text_color</item>
+        <item name="android:textColorPrimary">@color/default_text_color</item>
+    </style>
+
     <style name="ActionBarWidgetTheme" parent="@style/Theme.AppCompat.DayNight">
         <!-- This is the color of the search text hint in the action bar -->
         <item name="android:textColorHint">@color/search_hint_color</item>
@@ -62,13 +69,6 @@
     <style name="ListView" parent="@style/Widget.AppCompat.ListView">
         <item name="divider">@color/list_item_divider_color</item>
         <item name="android:dividerHeight">@dimen/divider_height</item>
-    </style>
-
-    <style name="ActionBarTitle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
-        <item name="android:textAlignment">center</item>
-        <item name="fontFamily">@font/gsansmedium</item>
-        <item name="android:textColor">@color/default_text_color</item>
-        <item name="android:textColorPrimary">@color/default_text_color</item>
     </style>
 
     <style name="PopupMenu" parent="@style/Widget.AppCompat.PopupMenu"/>

@@ -32,14 +32,14 @@ import android.view.View;
  */
 public class ColorPanelView extends View {
 
+    private static final int BORDER_COLOR = 0xff6E6E6E;
+
     /**
      * The width in pixels of the border surrounding the color panel.
      */
     private final static float BORDER_WIDTH_PX = 1;
 
     private static float mDensity = 1f;
-
-    private final int mBorderColor = 0xff6E6E6E;
 
     private int mColor = 0xff000000;
 
@@ -75,7 +75,7 @@ public class ColorPanelView extends View {
     @Override
     protected void onDraw(final Canvas canvas) {
         final RectF rect = mColorRect;
-        mBorderPaint.setColor(mBorderColor);
+        mBorderPaint.setColor(BORDER_COLOR);
         canvas.drawRect(mDrawingRect, mBorderPaint);
 
         if (mAlphaPattern != null) {

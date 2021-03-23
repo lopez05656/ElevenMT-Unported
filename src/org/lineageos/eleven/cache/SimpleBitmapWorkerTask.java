@@ -39,12 +39,9 @@ public class SimpleBitmapWorkerTask extends BitmapWorkerTask<String, Void, Trans
      * @param fromDrawable   what drawable to transition from
      * @param scaleImgToView flag to scale the bitmap to the image view bounds
      */
-    public SimpleBitmapWorkerTask(final String key,
-                                  final ImageView imageView,
-                                  final ImageType imageType,
-                                  final Drawable fromDrawable,
-                                  final Context context,
-                                  final boolean scaleImgToView) {
+    public SimpleBitmapWorkerTask(final String key, final ImageView imageView,
+                                  final ImageType imageType, final Drawable fromDrawable,
+                                  final Context context, final boolean scaleImgToView) {
         super(key, imageView, imageType, fromDrawable, context, scaleImgToView);
     }
 

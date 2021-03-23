@@ -81,9 +81,9 @@ public class DragSortController extends SimpleFloatViewManager implements View.O
 
     private int mCurrY;
 
-    private int mDragHandleId;
+    private final int mDragHandleId;
 
-    private float mOrigFloatAlpha;
+    private final float mOrigFloatAlpha;
 
     /**
      * By default, sorting is enabled, and removal is disabled.

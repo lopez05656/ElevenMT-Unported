@@ -65,7 +65,8 @@ public class DeleteDialog extends DialogFragment {
      * @param key   The key used to remove items from the cache.
      * @return A new instance of the dialog
      */
-    public static DeleteDialog newInstance(final String title, final long[] items, final String key) {
+    public static DeleteDialog newInstance(final String title, final long[] items,
+                                           final String key) {
         final DeleteDialog frag = new DeleteDialog();
         final Bundle args = new Bundle();
         args.putString(Config.NAME, title);

@@ -66,10 +66,8 @@ public final class NavUtils {
      * @param artistName The name of the album artist
      * @param albumId    The id of the album
      */
-    public static void openAlbumProfile(final Activity context,
-                                        final String albumName,
-                                        final String artistName,
-                                        final long albumId) {
+    public static void openAlbumProfile(final Activity context, final String albumName,
+                                        final String artistName, final long albumId) {
         // Create a new bundle to transfer the album info
         final Bundle bundle = new Bundle();
         bundle.putString(Config.ALBUM_YEAR, MusicUtils.getReleaseDateForAlbum(context, albumId));
@@ -86,7 +84,8 @@ public final class NavUtils {
         context.startActivity(intent);
     }
 
-    public static void openSmartPlaylist(final Activity context, final Config.SmartPlaylistType type) {
+    public static void openSmartPlaylist(final Activity context,
+                                         final Config.SmartPlaylistType type) {
         // Create the intent to launch the profile activity
         final Intent intent = new Intent(context, HomeActivity.class);
         intent.setAction(HomeActivity.ACTION_VIEW_SMART_PLAYLIST);

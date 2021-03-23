@@ -2,7 +2,6 @@
 <!--
   Copyright (C) 2012 Andrew Neal
   Copyright (C) 2014 The CyanogenMod Project
-  Copyright (C) 2021 The LineageOS Project
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -80,7 +79,7 @@
             android:contentDescription="@string/accessibility_prev"
             android:padding="@dimen/notification_expanded_button_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/btn_playback_previous_widget" />
+            android:src="@drawable/btn_playback_previous" />
 
         <ImageButton
             android:id="@+id/app_widget_large_play"
@@ -90,7 +89,7 @@
             android:background="?android:selectableItemBackground"
             android:padding="@dimen/notification_expanded_button_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/btn_playback_pause_widget" />
+            android:src="@drawable/btn_playback_pause" />
 
         <ImageButton
             android:id="@+id/app_widget_large_next"
@@ -101,7 +100,7 @@
             android:contentDescription="@string/accessibility_next"
             android:padding="@dimen/notification_expanded_button_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/btn_playback_next_widget" />
+            android:src="@drawable/btn_playback_next" />
     </LinearLayout>
 
 </GridLayout>

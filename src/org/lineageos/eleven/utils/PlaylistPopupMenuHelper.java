@@ -32,8 +32,7 @@ import org.lineageos.eleven.model.Playlist;
 public abstract class PlaylistPopupMenuHelper extends PopupMenuHelper {
     private Playlist mPlaylist;
 
-    public PlaylistPopupMenuHelper(Activity activity,
-                                   FragmentManager fragmentManager,
+    public PlaylistPopupMenuHelper(Activity activity, FragmentManager fragmentManager,
                                    PopupMenuType type) {
         super(activity, fragmentManager);
         mType = type;

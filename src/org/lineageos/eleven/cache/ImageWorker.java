@@ -155,10 +155,8 @@ public abstract class ImageWorker {
         return letterTileDrawable;
     }
 
-    public static Bitmap getBitmapInBackground(final Context context,
-                                               final ImageCache imageCache,
-                                               final String key,
-                                               final long albumId,
+    public static Bitmap getBitmapInBackground(final Context context, final ImageCache imageCache,
+                                               final String key, final long albumId,
                                                final ImageType imageType) {
         // The result
         Bitmap bitmap = null;
@@ -555,11 +553,8 @@ public abstract class ImageWorker {
      * @param albumScrimImage The {@link AlbumScrimImage} used to set the cached
      *                        {@link Bitmap}.
      */
-    protected void loadBlurImage(final String key,
-                                 final String artistName,
-                                 final String albumName,
-                                 final long albumId,
-                                 final AlbumScrimImage albumScrimImage) {
+    protected void loadBlurImage(final String key, final String artistName, final String albumName,
+                                 final long albumId, final AlbumScrimImage albumScrimImage) {
         if (key == null || mImageCache == null || albumScrimImage == null) {
             return;
         }
@@ -572,7 +567,8 @@ public abstract class ImageWorker {
             albumScrimImage.setTag(asyncTaskContainer);
 
             try {
-                ElevenUtils.execute(false, blurWorkerTask, artistName, albumName, String.valueOf(albumId));
+                ElevenUtils.execute(false, blurWorkerTask, artistName, albumName,
+                        String.valueOf(albumId));
             } catch (RejectedExecutionException e) {
                 // Executor has exhausted queue space, show default artwork
                 albumScrimImage.transitionToDefaultState();

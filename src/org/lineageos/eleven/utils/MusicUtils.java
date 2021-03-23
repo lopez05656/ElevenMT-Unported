@@ -784,7 +784,8 @@ public final class MusicUtils {
      * @param artistId The artist Id.
      * @param position Specify where to start.
      */
-    public static void playArtist(final Context context, final long artistId, int position, boolean shuffle) {
+    public static void playArtist(final Context context, final long artistId, int position,
+                                  boolean shuffle) {
         final long[] artistList = getSongListForArtist(context, artistId);
         if (artistList != null) {
             playAll(context, artistList, position, artistId, IdType.Artist, shuffle);
@@ -939,14 +940,16 @@ public final class MusicUtils {
      * @param albumId  The album Id.
      * @param position Specify where to start.
      */
-    public static void playAlbum(final Context context, final long albumId, int position, boolean shuffle) {
+    public static void playAlbum(final Context context, final long albumId, int position,
+                                 boolean shuffle) {
         final long[] albumList = getSongListForAlbum(context, albumId);
         if (albumList != null) {
             playAll(context, albumList, position, albumId, IdType.Album, shuffle);
         }
     }
 
-    public static void makeInsertItems(final long[] ids, final int offset, int len, final int base) {
+    public static void makeInsertItems(final long[] ids, final int offset, int len,
+                                       final int base) {
         if (offset + len > ids.length) {
             len = ids.length - offset;
         }
@@ -1028,15 +1031,16 @@ public final class MusicUtils {
     /**
      * @param context    The {@link Context} to use.
      * @param ids        The id of the song(s) to add.
-     * @param playlistid The id of the playlist being added to.
+     * @param playlistId The id of the playlist being added to.
      */
-    public static void addToPlaylist(final Context context, final long[] ids, final long playlistid) {
+    public static void addToPlaylist(final Context context, final long[] ids,
+                                     final long playlistId) {
         final int size = ids.length;
         final ContentResolver resolver = context.getContentResolver();
         final String[] projection = new String[]{
                 "max(" + Playlists.Members.PLAY_ORDER + ")",
         };
-        final Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistid);
+        final Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
 
         int base = 0;
         try (Cursor cursor = resolver.query(uri, projection, null, null, null)) {

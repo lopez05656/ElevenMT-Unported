@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  * Copyright (C) 2015 The CyanogenMod Project
+ * Copyright (C) 2021 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +14,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-
- * Note: This file was re-added only to provide a progress bar to the Bottom Action Bar, the main music player ui is unaffected by this file.
-
  */
 package org.lineageos.eleven.widgets;
 

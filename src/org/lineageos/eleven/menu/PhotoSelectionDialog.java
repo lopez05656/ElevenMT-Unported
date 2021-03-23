@@ -65,8 +65,7 @@ public class PhotoSelectionDialog extends DialogFragment {
      * @param key   key to query ImageFetcher
      * @return A new instance of the dialog.
      */
-    public static PhotoSelectionDialog newInstance(final String title,
-                                                   final ProfileType type,
+    public static PhotoSelectionDialog newInstance(final String title, final ProfileType type,
                                                    String key) {
         final PhotoSelectionDialog frag = new PhotoSelectionDialog();
         final Bundle args = new Bundle();

@@ -69,15 +69,11 @@ public abstract class SlidingPanelActivity extends BaseActivity {
     /**
      * Opens the now playing screen
      */
-    private final View.OnClickListener mOpenNowPlaying = new View.OnClickListener() {
-
-        @Override
-        public void onClick(final View v) {
-            if (MusicUtils.getCurrentAudioId() != -1) {
-                openAudioPlayer();
-            } else {
-                MusicUtils.shuffleAll(SlidingPanelActivity.this);
-            }
+    private final View.OnClickListener mOpenNowPlaying = v -> {
+        if (MusicUtils.getCurrentAudioId() != -1) {
+            openAudioPlayer();
+        } else {
+            MusicUtils.shuffleAll(SlidingPanelActivity.this);
         }
     };
 

@@ -71,12 +71,9 @@ public class PlaylistWorkerTask extends BitmapWorkerTask<Void, Void, TransitionD
      * @param imageView    The {@link ImageView} to use.
      * @param fromDrawable what drawable to transition from
      */
-    public PlaylistWorkerTask(final String key,
-                              final long playlistId,
-                              final PlaylistWorkerType type,
-                              final boolean foundInCache,
-                              final ImageView imageView,
-                              final Drawable fromDrawable,
+    public PlaylistWorkerTask(final String key, final long playlistId,
+                              final PlaylistWorkerType type, final boolean foundInCache,
+                              final ImageView imageView, final Drawable fromDrawable,
                               final Context context) {
         super(key, imageView, ImageType.PLAYLIST, fromDrawable, context);
 

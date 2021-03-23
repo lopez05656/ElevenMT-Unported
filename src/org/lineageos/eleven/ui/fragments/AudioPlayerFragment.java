@@ -135,8 +135,7 @@ public class AudioPlayerFragment extends Fragment implements ServiceConnection {
     }
 
     @Override
-    public View onCreateView(@NonNull final LayoutInflater inflater,
-                             final ViewGroup container,
+    public View onCreateView(@NonNull final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         // The View for the fragment's UI
         mRootView = (ViewGroup) inflater.inflate(R.layout.activity_player_fragment,
