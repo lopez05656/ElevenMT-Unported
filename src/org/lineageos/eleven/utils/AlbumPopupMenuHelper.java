@@ -87,7 +87,8 @@ public abstract class AlbumPopupMenuHelper extends PopupMenuHelper {
             if (item.getItemId() == FragmentMenuItems.CHANGE_IMAGE) {
                 String key = ImageFetcher.generateAlbumCacheKey(mAlbum.mAlbumName,
                         getArtistName());
-                PhotoSelectionDialog.newInstance(mAlbum.mAlbumName, key)
+                PhotoSelectionDialog.newInstance(mAlbum.mAlbumName,
+                        PhotoSelectionDialog.ProfileType.ALBUM, key)
                         .show(mFragmentManager, "PhotoSelectionDialog");
                 return true;
             }

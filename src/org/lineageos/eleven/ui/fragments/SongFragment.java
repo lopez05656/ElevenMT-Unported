@@ -43,9 +43,10 @@ import org.lineageos.eleven.utils.SectionCreatorUtils;
 public class SongFragment extends BasicSongFragment {
 
     public void playAll(int position) {
-        final long[] list = mAdapter.getSongIds();
+        int internalPosition = mAdapter.getInternalPosition(position);
+        final long[] list = mAdapter.getUnderlyingAdapter().getSongIds();
         if (list != null) {
-            MusicUtils.playAll(getActivity(), list, position, -1, Config.IdType.NA, false);
+            MusicUtils.playAll(getActivity(), list, internalPosition, -1, Config.IdType.NA, false);
         }
     }
 
@@ -78,10 +79,5 @@ public class SongFragment extends BasicSongFragment {
     public LoaderManager getFragmentLoaderManager() {
         final Fragment parent = getParentFragment();
         return parent == null ? null : LoaderManager.getInstance(parent);
-    }
-
-    @Override
-    protected boolean hasHeaders() {
-        return true;
     }
 }

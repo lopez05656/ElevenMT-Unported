@@ -17,19 +17,13 @@
 package org.lineageos.eleven.ui.fragments;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.R;
@@ -37,7 +31,6 @@ import org.lineageos.eleven.adapters.AlbumDetailSongAdapter;
 import org.lineageos.eleven.adapters.DetailSongAdapter;
 import org.lineageos.eleven.adapters.PagerAdapter;
 import org.lineageos.eleven.cache.ImageFetcher;
-import org.lineageos.eleven.loaders.AlbumSongLoader;
 import org.lineageos.eleven.model.Album;
 import org.lineageos.eleven.model.Song;
 import org.lineageos.eleven.utils.AlbumPopupMenuHelper;
@@ -49,8 +42,7 @@ import org.lineageos.eleven.widgets.LoadingEmptyContainer;
 
 import java.util.List;
 
-public class AlbumDetailFragment extends DetailFragment implements IChildFragment,
-        LoaderManager.LoaderCallbacks<List<Song>> {
+public class AlbumDetailFragment extends DetailFragment implements IChildFragment {
     private static final int LOADER_ID = 1;
 
     private DetailSongAdapter mSongAdapter;
@@ -87,7 +79,7 @@ public class AlbumDetailFragment extends DetailFragment implements IChildFragmen
         }
         setupSongList();
 
-        LoaderManager.getInstance(this).initLoader(LOADER_ID, args, this);
+        LoaderManager.getInstance(this).initLoader(LOADER_ID, args, mSongAdapter);
     }
 
     @Override
@@ -116,23 +108,23 @@ public class AlbumDetailFragment extends DetailFragment implements IChildFragmen
         String year = arguments.getString(Config.ALBUM_YEAR);
         int songCount = arguments.getInt(Config.SONG_COUNT);
 
-        mAlbumArt = mRootView.findViewById(R.id.album_art);
+        mAlbumArt = (ImageView) mRootView.findViewById(R.id.album_art);
         mAlbumArt.setContentDescription(mAlbumName);
         ImageFetcher.getInstance(getActivity()).loadAlbumImage(artist,
                 mAlbumName, mAlbumId, mAlbumArt);
 
-        TextView title = mRootView.findViewById(R.id.title);
+        TextView title = (TextView) mRootView.findViewById(R.id.title);
         title.setText(mAlbumName);
 
         setupCountAndYear(mRootView, year, songCount);
 
         // will be updated once we have song data
-        mAlbumDuration = mRootView.findViewById(R.id.duration);
-        mGenre = mRootView.findViewById(R.id.genre);
+        mAlbumDuration = (TextView) mRootView.findViewById(R.id.duration);
+        mGenre = (TextView) mRootView.findViewById(R.id.genre);
     }
 
     private void setupCountAndYear(View root, String year, int songCount) {
-        TextView songCountAndYear = root.findViewById(R.id.song_count_and_year);
+        TextView songCountAndYear = (TextView) root.findViewById(R.id.song_count_and_year);
         if (songCount > 0) {
             String countText = getResources().
                     getQuantityString(R.plurals.Nsongs, songCount, songCount);
@@ -166,15 +158,25 @@ public class AlbumDetailFragment extends DetailFragment implements IChildFragmen
     }
 
     private void setupSongList() {
-        RecyclerView songsList = mRootView.findViewById(R.id.songs);
-        mSongAdapter = new AlbumDetailSongAdapter(getActivity());
+        ListView songsList = (ListView) mRootView.findViewById(R.id.songs);
+        mSongAdapter = new AlbumDetailSongAdapter(getActivity(), this) {
+            @Override
+            protected void onLoading() {
+                mLoadingEmptyContainer.showLoading();
+            }
+
+            @Override
+            protected void onNoResults() {
+                getContainingActivity().postRemoveFragment(AlbumDetailFragment.this);
+            }
+        };
         mSongAdapter.setPopupMenuClickedListener((v, position) ->
                 mSongMenuHelper.showPopupMenu(v, position));
-        songsList.setLayoutManager(new LinearLayoutManager(getActivity()));
-        songsList.setItemAnimator(new DefaultItemAnimator());
         songsList.setAdapter(mSongAdapter);
-        mLoadingEmptyContainer = mRootView.findViewById(R.id.loading_empty_container);
-        mLoadingEmptyContainer.setVisibility(View.VISIBLE);
+        songsList.setOnItemClickListener(mSongAdapter);
+        mLoadingEmptyContainer =
+                (LoadingEmptyContainer) mRootView.findViewById(R.id.loading_empty_container);
+        songsList.setEmptyView(mLoadingEmptyContainer);
     }
 
     /**
@@ -199,7 +201,7 @@ public class AlbumDetailFragment extends DetailFragment implements IChildFragmen
 
     @Override
     public void restartLoader() {
-        LoaderManager.getInstance(this).restartLoader(LOADER_ID, getArguments(), this);
+        LoaderManager.getInstance(this).restartLoader(LOADER_ID, getArguments(), mSongAdapter);
         ImageFetcher.getInstance(getActivity()).loadAlbumImage(mArtistName, mAlbumName, mAlbumId,
                 mAlbumArt);
     }
@@ -214,35 +216,5 @@ public class AlbumDetailFragment extends DetailFragment implements IChildFragmen
     @Override
     public PagerAdapter.MusicFragments getMusicFragmentParent() {
         return PagerAdapter.MusicFragments.ALBUM;
-    }
-
-    @NonNull
-    @Override
-    public Loader<List<Song>> onCreateLoader(int id, @Nullable Bundle args) {
-        mLoadingEmptyContainer.showLoading();
-        long sourceId = args == null ? -1 : args.getLong(Config.ID);
-        mSongAdapter.setSourceId(sourceId);
-        return new AlbumSongLoader(getContext(), sourceId);
-    }
-
-    @Override
-    public void onLoadFinished(@NonNull Loader<List<Song>> loader, List<Song> data) {
-        Handler handler = new Handler(requireActivity().getMainLooper());
-
-        if (data.isEmpty()) {
-            getContainingActivity().postRemoveFragment(AlbumDetailFragment.this);
-            return;
-        }
-
-        mLoadingEmptyContainer.setVisibility(View.GONE);
-        // Do on UI thread: https://issuetracker.google.com/issues/37030377
-        handler.post(() -> mSongAdapter.setData(data));
-        update(data);
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<List<Song>> loader) {
-        // Clear the data in the adapter
-        mSongAdapter.unload();
     }
 }

@@ -75,7 +75,8 @@ public abstract class ArtistPopupMenuHelper extends PopupMenuHelper {
         boolean handled = super.onMenuItemClick(item);
         if (!handled && item.getGroupId() == getGroupId()) {
             if (item.getItemId() == FragmentMenuItems.CHANGE_IMAGE) {
-                PhotoSelectionDialog.newInstance(getArtistName(), getArtistName())
+                PhotoSelectionDialog.newInstance(getArtistName(),
+                        PhotoSelectionDialog.ProfileType.ARTIST, getArtistName())
                         .show(mFragmentManager, "PhotoSelectionDialog");
                 return true;
             }
