@@ -20,19 +20,20 @@ package org.lineageos.eleven.ui.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import org.lineageos.eleven.MusicStateListener;
 import org.lineageos.eleven.R;
@@ -40,6 +41,8 @@ import org.lineageos.eleven.adapters.ArtistAdapter;
 import org.lineageos.eleven.adapters.PagerAdapter;
 import org.lineageos.eleven.loaders.ArtistLoader;
 import org.lineageos.eleven.model.Artist;
+import org.lineageos.eleven.recycler.RecycleHolder;
+import org.lineageos.eleven.sectionadapter.SectionAdapter;
 import org.lineageos.eleven.sectionadapter.SectionCreator;
 import org.lineageos.eleven.sectionadapter.SectionListContainer;
 import org.lineageos.eleven.ui.activities.BaseActivity;
@@ -50,9 +53,6 @@ import org.lineageos.eleven.utils.PopupMenuHelper;
 import org.lineageos.eleven.utils.SectionCreatorUtils;
 import org.lineageos.eleven.utils.SectionCreatorUtils.IItemCompare;
 import org.lineageos.eleven.widgets.LoadingEmptyContainer;
-import org.lineageos.eleven.widgets.SectionSeparatorItemDecoration;
-
-import java.util.TreeMap;
 
 /**
  * This class is used to display all of the artists on a user's device.
@@ -60,7 +60,8 @@ import java.util.TreeMap;
  * @author Andrew Neal (andrewdneal@gmail.com)
  */
 public class ArtistFragment extends MusicBrowserFragment implements
-        LoaderManager.LoaderCallbacks<SectionListContainer<Artist>>, MusicStateListener {
+        LoaderManager.LoaderCallbacks<SectionListContainer<Artist>>,
+        OnScrollListener, OnItemClickListener, MusicStateListener {
 
     /**
      * Fragment UI
@@ -70,7 +71,7 @@ public class ArtistFragment extends MusicBrowserFragment implements
     /**
      * The adapter for the grid
      */
-    private ArtistAdapter mAdapter;
+    private SectionAdapter<Artist, ArtistAdapter> mAdapter;
 
     /**
      * Pop up menu helper
@@ -81,10 +82,6 @@ public class ArtistFragment extends MusicBrowserFragment implements
      * Loading container and no results container
      */
     private LoadingEmptyContainer mLoadingEmptyContainer;
-    /**
-     * The list view.
-     */
-    private RecyclerView mListView;
 
     /**
      * Empty constructor as per the {@link Fragment} documentation
@@ -104,13 +101,14 @@ public class ArtistFragment extends MusicBrowserFragment implements
         mPopupMenuHelper = new ArtistPopupMenuHelper(getActivity(), getChildFragmentManager()) {
             @Override
             public Artist getArtist(int position) {
-                return mAdapter.getItem(position);
+                return mAdapter.getTItem(position);
             }
         };
 
         // Create the adapter
         final int layout = R.layout.list_item_normal;
-        mAdapter = new ArtistAdapter(requireActivity(), layout, this::onItemClick);
+        ArtistAdapter adapter = new ArtistAdapter(getActivity(), layout);
+        mAdapter = new SectionAdapter<>(getActivity(), adapter);
         mAdapter.setPopupMenuClickedListener((v, position) ->
                 mPopupMenuHelper.showPopupMenu(v, position));
     }
@@ -119,7 +117,7 @@ public class ArtistFragment extends MusicBrowserFragment implements
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         // The View for the fragment's UI
-        mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_list, container, false);
+        mRootView = (ViewGroup) inflater.inflate(R.layout.list_base, null);
         initListView();
 
         // Register the music status listener
@@ -157,8 +155,21 @@ public class ArtistFragment extends MusicBrowserFragment implements
         mAdapter.flush();
     }
 
-    public void onItemClick(final int position) {
-        Artist artist = mAdapter.getItem(position);
+    @Override
+    public void onScrollStateChanged(final AbsListView view, final int scrollState) {
+        // Pause disk cache access to ensure smoother scrolling
+        if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+            mAdapter.getUnderlyingAdapter().setPauseDiskCache(true);
+        } else {
+            mAdapter.getUnderlyingAdapter().setPauseDiskCache(false);
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onItemClick(final AdapterView<?> parent, final View view,
+                            final int position, final long id) {
+        Artist artist = mAdapter.getTItem(position);
         NavUtils.openArtistProfile(getActivity(), artist.mArtistName);
     }
 
@@ -174,17 +185,13 @@ public class ArtistFragment extends MusicBrowserFragment implements
     @Override
     public void onLoadFinished(@NonNull final Loader<SectionListContainer<Artist>> loader,
                                final SectionListContainer<Artist> data) {
-        Handler handler = new Handler(requireActivity().getMainLooper());
         if (data.mListResults.isEmpty()) {
-            handler.post(() -> mAdapter.unload());
+            mAdapter.unload();
             mLoadingEmptyContainer.showNoResults();
             return;
         }
 
-        mLoadingEmptyContainer.setVisibility(View.GONE);
-
-        handler.post(() -> mAdapter.setData(data.mListResults));
-        setHeaders(data.mSections);
+        mAdapter.setData(data);
     }
 
     @Override
@@ -203,6 +210,12 @@ public class ArtistFragment extends MusicBrowserFragment implements
     }
 
     @Override
+    public void onScroll(final AbsListView view, final int firstVisibleItem,
+                         final int visibleItemCount, final int totalItemCount) {
+        // Nothing to do
+    }
+
+    @Override
     public void restartLoader() {
         // Update the list when the user deletes any items
         restartLoader(null, this);
@@ -218,11 +231,18 @@ public class ArtistFragment extends MusicBrowserFragment implements
         // Nothing to do
     }
 
-    private void setHeaders(TreeMap<Integer, SectionCreatorUtils.Section> sections) {
-        for (int i = 0; i < mListView.getItemDecorationCount(); i++) {
-            mListView.removeItemDecorationAt(i);
-        }
-        mListView.addItemDecoration(new SectionSeparatorItemDecoration(requireContext(), sections));
+    /**
+     * Sets up various helpers for both the list and grid
+     *
+     * @param list The list or grid
+     */
+    private void initAbsListView(final AbsListView list) {
+        // Release any references to the recycled Views
+        list.setRecyclerListener(new RecycleHolder());
+        // Show the albums and songs from the selected artist
+        list.setOnItemClickListener(this);
+        // To help make scrolling smooth
+        list.setOnScrollListener(this);
     }
 
     /**
@@ -230,14 +250,13 @@ public class ArtistFragment extends MusicBrowserFragment implements
      */
     private void initListView() {
         // Initialize the grid
-        mListView = mRootView.findViewById(R.id.list_base);
+        final ListView listView = mRootView.findViewById(R.id.list_base);
         // Set the data behind the list
-        mListView.setAdapter(mAdapter);
-        mListView.setLayoutManager(new LinearLayoutManager(requireActivity()));
-        mListView.setItemAnimator(new DefaultItemAnimator());
-
+        listView.setAdapter(mAdapter);
         // set the loading and empty view container
         mLoadingEmptyContainer = mRootView.findViewById(R.id.loading_empty_container);
-        mLoadingEmptyContainer.setVisibility(View.VISIBLE);
+        listView.setEmptyView(mLoadingEmptyContainer);
+        // Set up the helpers
+        initAbsListView(listView);
     }
 }

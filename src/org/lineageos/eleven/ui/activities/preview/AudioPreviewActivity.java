@@ -24,15 +24,12 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Rect;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore.Audio.Media;
 import android.text.TextUtils;
@@ -87,8 +84,6 @@ public class AudioPreviewActivity extends AppCompatActivity implements
     private boolean mIsSeeking = false;
     private boolean mWasPlaying = false;
 
-    private AudioFocusRequest mFocusRequest;
-
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (mPreviewPlayer != null && mIsSeeking) {
@@ -128,21 +123,14 @@ public class AudioPreviewActivity extends AppCompatActivity implements
      *
      * @see Handler
      */
-    private static class UiHandler extends Handler {
+    private class UiHandler extends Handler {
 
         public static final int MSG_UPDATE_PROGRESS = 1000;
-
-        private final Runnable mUpdateProgressForPlayer;
-
-        public UiHandler(@NonNull Looper looper, Runnable updateProgressForPlayer) {
-            super(looper);
-            mUpdateProgressForPlayer = updateProgressForPlayer;
-        }
 
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == MSG_UPDATE_PROGRESS) {
-                mUpdateProgressForPlayer.run();
+                updateProgressForPlayer();
             } else {
                 super.handleMessage(msg);
             }
@@ -162,8 +150,7 @@ public class AudioPreviewActivity extends AppCompatActivity implements
             }
         }
     };
-    private final UiHandler mHandler = new UiHandler(Looper.getMainLooper(),
-            this::updateProgressForPlayer);
+    private final UiHandler mHandler = new UiHandler();
     private static AsyncQueryHandler sAsyncQueryHandler;
     private AudioManager mAudioManager;
     private PreviewPlayer mPreviewPlayer;
@@ -397,12 +384,12 @@ public class AudioPreviewActivity extends AppCompatActivity implements
         // Make it so if the user touches the background overlay we exit
         View v = findViewById(R.id.grp_transparent_wrapper);
         v.setOnTouchListener(this);
-        mTitleTextView = findViewById(R.id.tv_title);
-        mArtistTextView = findViewById(R.id.tv_artist);
-        mSeekBar = findViewById(R.id.sb_progress);
+        mTitleTextView = (TextView) findViewById(R.id.tv_title);
+        mArtistTextView = (TextView) findViewById(R.id.tv_artist);
+        mSeekBar = (SeekBar) findViewById(R.id.sb_progress);
         mSeekBar.setOnSeekBarChangeListener(this);
-        mProgressBar = findViewById(R.id.pb_loader);
-        mPlayPauseBtn = findViewById(R.id.ib_playpause);
+        mProgressBar = (ProgressBar) findViewById(R.id.pb_loader);
+        mPlayPauseBtn = (ImageButton) findViewById(R.id.ib_playpause);
     }
 
     private void processUri() {
@@ -561,21 +548,14 @@ public class AudioPreviewActivity extends AppCompatActivity implements
         if (mAudioManager == null) {
             return false;
         }
-        AudioAttributes attrs = new AudioAttributes.Builder()
-                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
-                .build();
-        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setOnAudioFocusChangeListener(this)
-                .setAudioAttributes(attrs)
-                .build();
-        int r = mAudioManager.requestAudioFocus(mFocusRequest);
+        int r = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
         return r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
     }
 
     private void abandonAudioFocus() {
-        if (mAudioManager != null && mFocusRequest != null) {
-            mAudioManager.abandonAudioFocusRequest(mFocusRequest);
-            mFocusRequest = null;
+        if (mAudioManager != null) {
+            mAudioManager.abandonAudioFocus(this);
         }
     }
 
@@ -626,9 +606,8 @@ public class AudioPreviewActivity extends AppCompatActivity implements
     @Override
     public void onAudioFocusChange(int focusChange) {
         if (mPreviewPlayer == null) {
-            if (mAudioManager != null && mFocusRequest != null) {
-                mAudioManager.abandonAudioFocusRequest(mFocusRequest);
-                mFocusRequest = null;
+            if (mAudioManager != null) {
+                mAudioManager.abandonAudioFocus(this);
             }
         }
         Logger.logd(TAG, "Focus change: " + focusChange);

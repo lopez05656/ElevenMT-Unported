@@ -21,8 +21,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.widgets.PlayPauseButtonContainer;
 import org.lineageos.eleven.widgets.PopupMenuButton;
@@ -35,7 +33,7 @@ import java.lang.ref.WeakReference;
  *
  * @author Andrew Neal (andrewdneal@gmail.com)
  */
-public class MusicHolder extends RecyclerView.ViewHolder {
+public class MusicHolder {
 
     /**
      * This is the artist or album image
@@ -94,22 +92,23 @@ public class MusicHolder extends RecyclerView.ViewHolder {
      * Constructor of <code>ViewHolder</code>
      */
     public MusicHolder(final View view) {
-        super(view);
+        super();
         // Initialize mImage
-        mImage = new WeakReference<>(view.findViewById(R.id.image));
+        mImage = new WeakReference<>((ImageView) view.findViewById(R.id.image));
 
         // Initialize mLineOne
-        mLineOne = new WeakReference<>(view.findViewById(R.id.line_one));
+        mLineOne = new WeakReference<>((TextView) view.findViewById(R.id.line_one));
 
         // Initialize mLineOneRight
-        mLineOneRight = new WeakReference<>(view.findViewById(R.id.line_one_right));
+        mLineOneRight = new WeakReference<>(
+                (TextView) view.findViewById(R.id.line_one_right));
 
         // Initialize mLineTwo
-        mLineTwo = new WeakReference<>(view.findViewById(R.id.line_two));
+        mLineTwo = new WeakReference<>((TextView) view.findViewById(R.id.line_two));
 
         // Initialize Circular progress bar container
         mPlayPauseProgressButton = new WeakReference<>(
-                view.findViewById(R.id.playPauseProgressButton));
+                (PlayPauseButtonContainer) view.findViewById(R.id.playPauseProgressButton));
 
         // Get the padding container for the progress bar
         mPlayPauseProgressContainer = new WeakReference<>(
@@ -122,7 +121,7 @@ public class MusicHolder extends RecyclerView.ViewHolder {
 
         // Get the pop up menu button
         mPopupMenuButton = new WeakReference<>(
-                view.findViewById(R.id.popup_menu_button));
+                (PopupMenuButton) view.findViewById(R.id.popup_menu_button));
     }
 
     public final static class DataHolder {

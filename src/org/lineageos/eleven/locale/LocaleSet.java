@@ -18,8 +18,6 @@ package org.lineageos.eleven.locale;
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -71,7 +69,6 @@ public class LocaleSet {
                     : mLanguage.equalsIgnoreCase(language);
         }
 
-        @NonNull
         public String toString() {
             return mLocale != null ? mLocale.toLanguageTag() : "(null)";
         }

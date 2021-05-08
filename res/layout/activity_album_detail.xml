@@ -22,6 +22,7 @@
             android:scaleType="centerCrop" />
 
         <RelativeLayout
+            android:id="@+id/header_info"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_toEndOf="@id/album_art"
@@ -87,10 +88,12 @@
     <include
         layout="@layout/loading_empty_container" />
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ListView
         android:id="@+id/songs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/header"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:divider="@null"
+        android:dividerHeight="0dp" />
 </RelativeLayout>

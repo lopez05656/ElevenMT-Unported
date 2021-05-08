@@ -16,13 +16,13 @@
  */
 package org.lineageos.eleven.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 import androidx.loader.content.Loader;
 
 import org.lineageos.eleven.Config;
@@ -35,24 +35,38 @@ import org.lineageos.eleven.utils.MusicUtils;
 
 import java.util.List;
 
-public class AlbumDetailSongAdapter extends DetailSongAdapter {
+public abstract class AlbumDetailSongAdapter extends DetailSongAdapter {
+    private final AlbumDetailFragment mFragment;
 
-    public AlbumDetailSongAdapter(FragmentActivity activity) {
+    public AlbumDetailSongAdapter(Activity activity, AlbumDetailFragment fragment) {
         super(activity);
+        mFragment = fragment;
     }
 
-    @Override
     protected int rowLayoutId() {
         return R.layout.album_detail_song;
     }
 
-    @Override
     protected Config.IdType getSourceType() {
         return Config.IdType.Album;
     }
 
+    @Override
+    @NonNull
+    public Loader<List<Song>> onCreateLoader(int id, Bundle args) {
+        onLoading();
+        setSourceId(args == null ? -1 : args.getLong(Config.ID));
+        return new AlbumSongLoader(mActivity, getSourceId());
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<List<Song>> loader, List<Song> songs) {
+        super.onLoadFinished(loader, songs);
+        mFragment.update(songs);
+    }
+
     protected Holder newHolder(View root, ImageFetcher fetcher) {
-        return new AlbumHolder(root, fetcher, mContext);
+        return new AlbumHolder(root, fetcher, mActivity);
     }
 
     private static class AlbumHolder extends Holder {
@@ -62,7 +76,7 @@ public class AlbumDetailSongAdapter extends DetailSongAdapter {
         protected AlbumHolder(View root, ImageFetcher fetcher, Context context) {
             super(root, fetcher);
             this.context = context;
-            duration = root.findViewById(R.id.duration);
+            duration = (TextView) root.findViewById(R.id.duration);
         }
 
         protected void update(Song song) {

@@ -16,30 +16,44 @@
  */
 package org.lineageos.eleven.adapters;
 
+import android.app.Activity;
+import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.fragment.app.FragmentActivity;
+import androidx.annotation.NonNull;
+import androidx.loader.content.Loader;
 
 import org.lineageos.eleven.Config;
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.cache.ImageFetcher;
+import org.lineageos.eleven.loaders.SongLoader;
 import org.lineageos.eleven.model.Song;
 
-public class ArtistDetailSongAdapter extends DetailSongAdapter {
-    public ArtistDetailSongAdapter(FragmentActivity activity) {
+import java.util.List;
+
+public abstract class ArtistDetailSongAdapter extends DetailSongAdapter {
+    public ArtistDetailSongAdapter(Activity activity) {
         super(activity);
     }
 
-    @Override
     protected int rowLayoutId() {
         return R.layout.artist_detail_song;
     }
 
-    @Override
     protected Config.IdType getSourceType() {
         return Config.IdType.Artist;
+    }
+
+    @Override
+    @NonNull
+    public Loader<List<Song>> onCreateLoader(int id, Bundle args) {
+        onLoading();
+        setSourceId(args == null ? -1 : args.getLong(Config.ID));
+        final String selection = MediaStore.Audio.AudioColumns.ARTIST_ID + "=" + getSourceId();
+        return new SongLoader(mActivity, selection);
     }
 
     @Override

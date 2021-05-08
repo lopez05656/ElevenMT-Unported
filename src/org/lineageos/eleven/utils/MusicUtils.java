@@ -45,7 +45,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
-import androidx.fragment.app.FragmentActivity;
 
 import org.lineageos.eleven.BuildConfig;
 import org.lineageos.eleven.Config.IdType;
@@ -54,7 +53,6 @@ import org.lineageos.eleven.IElevenService;
 import org.lineageos.eleven.MusicPlaybackService;
 import org.lineageos.eleven.R;
 import org.lineageos.eleven.cache.ImageFetcher;
-import org.lineageos.eleven.loaders.AlbumSongLoader;
 import org.lineageos.eleven.loaders.LastAddedLoader;
 import org.lineageos.eleven.loaders.PlaylistLoader;
 import org.lineageos.eleven.loaders.PlaylistSongLoader;
@@ -743,9 +741,14 @@ public final class MusicUtils {
      * @return The song list for an artist.
      */
     public static long[] getSongListForArtist(final Context context, final long id) {
+        final String[] projection = new String[]{
+                BaseColumns._ID
+        };
         final String selection = AudioColumns.ARTIST_ID + "=" + id + " AND "
                 + AudioColumns.IS_MUSIC + "=1";
-        try (Cursor cursor = SongLoader.makeSongCursor(context, selection)) {
+        try (Cursor cursor = context.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection, null,
+                AudioColumns.ALBUM_KEY + "," + AudioColumns.TRACK)) {
             if (cursor != null) {
                 return getSongListForCursor(cursor);
             }
@@ -759,7 +762,14 @@ public final class MusicUtils {
      * @return The song list for an album.
      */
     public static long[] getSongListForAlbum(final Context context, final long id) {
-        try (Cursor cursor = AlbumSongLoader.makeAlbumSongCursor(context, id)) {
+        final String[] projection = new String[]{
+                BaseColumns._ID
+        };
+        final String selection = AudioColumns.ALBUM_ID + "=" + id + " AND " + AudioColumns.IS_MUSIC
+                + "=1";
+        try (Cursor cursor = context.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection, null,
+                AudioColumns.TRACK + ", " + MediaStore.Audio.Media.DEFAULT_SORT_ORDER)) {
             if (cursor != null) {
                 return getSongListForCursor(cursor);
             }
@@ -869,9 +879,6 @@ public final class MusicUtils {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "getIdForPlaylist(" + name + ")");
         }
-        if (name == null) {
-            return -1;
-        }
 
         try (Cursor cursor = context.getContentResolver().query(Playlists.EXTERNAL_CONTENT_URI,
                 new String[]{BaseColumns._ID}, PlaylistsColumns.NAME + "=?",
@@ -913,9 +920,6 @@ public final class MusicUtils {
      * @return The ID for an artist.
      */
     public static long getIdForArtist(final Context context, final String name) {
-        if (name == null) {
-            return -1;
-        }
         try (Cursor cursor = context.getContentResolver().query(
                 MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, new String[]{BaseColumns._ID},
                 ArtistColumns.ARTIST + "=?", new String[]{name}, ArtistColumns.ARTIST)) {
@@ -1617,7 +1621,7 @@ public final class MusicUtils {
      * Removes the header image from the cache.
      */
     @WorkerThread
-    public static void removeFromCache(FragmentActivity activity, String key) {
+    public static void removeFromCache(Activity activity, String key) {
         ImageFetcher imageFetcher = ElevenUtils.getImageFetcher(activity);
         imageFetcher.removeFromCache(key);
 
@@ -1629,7 +1633,7 @@ public final class MusicUtils {
     /**
      * Removes image from cache so that the stock image is retrieved on reload
      */
-    public static void selectOldPhoto(FragmentActivity activity, String key) {
+    public static void selectOldPhoto(Activity activity, String key) {
         // First remove the old image
         removeFromCache(activity, key);
         MusicUtils.refresh();
