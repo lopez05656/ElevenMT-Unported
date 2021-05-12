@@ -10,4 +10,4 @@ If you're building for Queen Cake (Android 10):
 Remove the Eleven line and Add this to your lineage.xml (It's located in /.repo/manifests/snippets): 
 <project path="packages/apps/Eleven" name="lopez05656/ElevenMT-Unported" revision=lineage-18.0 />
 
-After you do that, you may issue the repo sync (Or repo sync --force-sync if you already synced your rom) command and you'll be all set.sync if you already synced your rom) command and you'll be all set.
+After you do that, you may issue the repo sync (Or repo sync --force-sync if you already synced your rom) command and you'll be all set.
