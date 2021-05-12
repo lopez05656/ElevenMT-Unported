@@ -7,7 +7,7 @@ Looking for the port? Go here: https://github.com/lopez05656/Eleven
 
 Want it for Nougat and below? Go here: https://github.com/lopez05656/ElevenMT-Unported/tree/cm-14.1
 
-Or if you want it for Queen Cake (LineageOS 17.1 / Android 10) and Red Velvet Cake (LineageOS 18.1 / Android 11), 
+Or if you want it for Pie (LineageOS 16.0 / Android 9), Queen Cake (LineageOS 17.1 / Android 10), and Red Velvet Cake (LineageOS 18.1 / Android 11), 
 go here: https://github.com/lopez05656/ElevenMT-Unported/tree/lineage-18.1
 
 
