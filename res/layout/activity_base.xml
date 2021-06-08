@@ -43,7 +43,7 @@
             android:elevation="@dimen/action_bar_elevation"
             android:theme="@style/ToolBarTheme"
             app:popupTheme="@style/ToolBarPopupTheme"
-            app:titleTextAppearance="@style/TextAppearance.Widget.Event.Toolbar.Title" />
+           app:titleTextAppearance="@style/TextAppearance.Widget.Event.Toolbar.Title" />
 
         <include
             layout="@layout/toolbarcover"
