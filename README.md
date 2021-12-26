@@ -1,2 +1,2 @@
-Eleven Replacement Repo.
+Eleven Replacement Repo
 ------------------------------------------------------------
