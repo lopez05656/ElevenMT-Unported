@@ -1,4 +1,5 @@
 This is a guide on how to include this in a LineageOS Build:
+NOTICE: This guide is outdated, updated guide coming soon!
 
 If you're building for Red Velvet Cake (Android 11):
 Remove the Eleven line and Add this to your lineage.xml (It's located in .repo/manifests/snippets): 
